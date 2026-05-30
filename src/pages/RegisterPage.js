@@ -6,6 +6,7 @@ function RegisterPage() {
         username: '',
         email: '',
         password: '',
+        re_password: '',
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -50,6 +51,14 @@ function RegisterPage() {
                 name="password"
                 placeholder="Parol"
                 value={formData.password}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+            />
+            <input
+                type="password"
+                name="re_password"
+                placeholder="Parolni takrorlang"
+                value={formData.re_password}
                 onChange={handleChange}
                 style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
             />
