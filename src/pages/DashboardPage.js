@@ -32,6 +32,15 @@ function DashboardPage() {
                 </div>
             )}
 
+             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <a href="/vocabulary" style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
+                    Lug'at
+                </a>
+                <a href="/statistics" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
+                    Statistika
+                </a>
+            </div>
+
             {overall && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div style={{ backgroundColor: '#007bff', color: 'white', padding: '20px', borderRadius: '8px' }}>
