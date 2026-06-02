@@ -29,3 +29,20 @@ a {
   color: var(--accent);
   text-decoration: none;
 }
+input {
+  background-color: #111827 !important;
+  border: 1px solid var(--border);
+  color: var(--text-primary) !important;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #111827 inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
