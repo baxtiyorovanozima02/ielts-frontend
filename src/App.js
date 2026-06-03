@@ -7,6 +7,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import LandingPage from './pages/LandingPage';
+import PricingPage from './pages/PricingPage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
             </Routes>
         </Router>
     );
