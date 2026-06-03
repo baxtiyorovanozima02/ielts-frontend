@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import VocabularyPage from './pages/VocabularyPage';
 import StatisticsPage from './pages/StatisticsPage';
 import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
@@ -23,6 +24,7 @@ function App() {
                 <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
                 <Route path="/" element={<Navigate to="/login" />} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
             </Routes>
         </Router>
     );
