@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authAPI, statisticsAPI } from '../services/api';
+import Navbar from '../components/Navbar';
 
 function DashboardPage() {
     const [user, setUser] = useState(null);
@@ -20,18 +21,7 @@ function DashboardPage() {
         <div style={styles.page}>
 
             {/* Navbar */}
-            <nav style={styles.navbar}>
-                <div style={styles.navLogo}>
-                    IELTS<span style={styles.logoAccent}>.uz</span>
-                </div>
-                <div style={styles.navLinks}>
-                    <a href="/vocabulary" style={styles.navLink}>Lug'at</a>
-                    <a href="/statistics" style={styles.navLink}>Statistika</a>
-                    <button onClick={handleLogout} style={styles.logoutBtn}>
-                        Chiqish
-                    </button>
-                </div>
-            </nav>
+            <Navbar />
 
             {/* Content */}
             <main style={styles.main}>
