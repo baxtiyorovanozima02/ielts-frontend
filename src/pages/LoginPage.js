@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { authAPI } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
+    const { showToast } = useToast();
     const handleLogin = async () => {
         setLoading(true);
         try {
@@ -14,8 +15,11 @@ function LoginPage() {
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
             window.location.href = '/dashboard';
+            showToast("Xush kelibsiz!", 'success');
         } catch (err) {
             setError("Username yoki parol noto'g'ri");
+            showToast("Username yoki parol noto'g'ri", 'error');
+
         } finally {
             setLoading(false);
         }
