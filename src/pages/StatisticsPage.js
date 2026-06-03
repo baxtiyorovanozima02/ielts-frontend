@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { statisticsAPI } from '../services/api';
+import Navbar from '../components/Navbar';
 
 function StatisticsPage() {
     const [history, setHistory] = useState({ writing: [], speaking: [] });
@@ -14,15 +15,7 @@ function StatisticsPage() {
         <div style={styles.page}>
 
             {/* Navbar */}
-            <nav style={styles.navbar}>
-                <a href="/dashboard" style={styles.navLogo}>
-                    IELTS<span style={styles.logoAccent}>.uz</span>
-                </a>
-                <div style={styles.navLinks}>
-                    <a href="/vocabulary" style={styles.navLink}>Lug'at</a>
-                    <a href="/statistics" style={{ ...styles.navLink, color: 'var(--text-primary)' }}>Statistika</a>
-                </div>
-            </nav>
+            <Navbar />
 
             <main style={styles.main}>
 

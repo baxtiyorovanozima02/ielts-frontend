@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { vocabularyAPI } from '../services/api';
+import Navbar from '../components/Navbar';
 
 function VocabularyPage() {
     const [words, setWords] = useState([]);
@@ -38,15 +39,7 @@ function VocabularyPage() {
         <div style={styles.page}>
 
             {/* Navbar */}
-            <nav style={styles.navbar}>
-                <a href="/dashboard" style={styles.navLogo}>
-                    IELTS<span style={styles.logoAccent}>.uz</span>
-                </a>
-                <div style={styles.navLinks}>
-                    <a href="/vocabulary" style={{ ...styles.navLink, color: 'var(--text-primary)' }}>Lug'at</a>
-                    <a href="/statistics" style={styles.navLink}>Statistika</a>
-                </div>
-            </nav>
+            <Navbar />
 
             <main style={styles.main}>
 
