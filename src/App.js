@@ -4,6 +4,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import VocabularyPage from './pages/VocabularyPage';
 import StatisticsPage from './pages/StatisticsPage';
+import ProfilePage from './pages/ProfilePage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
@@ -21,9 +22,11 @@ function App() {
                 <Route path="/vocabulary" element={<PrivateRoute><VocabularyPage /></PrivateRoute>} />
                 <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
                 <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
             </Routes>
         </Router>
     );
 }
 
 export default App;
+
