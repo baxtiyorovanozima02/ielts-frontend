@@ -9,12 +9,15 @@ import SettingsPage from './pages/SettingsPage';
 import LandingPage from './pages/LandingPage';
 import PricingPage from './pages/PricingPage';
 import NotFoundPage from './pages/NotFoundPage';
+import TestsPage from './pages/TestsPage';
+import WritingTestPage from './pages/WritingTestPage';
+import SpeakingTestPage from './pages/SpeakingTestPage';
+import TestResultPage from './pages/TestResultPage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
     return token ? children : <Navigate to="/login" />;
 }
-
 
 function App() {
     return (
@@ -27,6 +30,10 @@ function App() {
                 <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+                <Route path="/tests" element={<PrivateRoute><TestsPage /></PrivateRoute>} />
+                <Route path="/tests/writing/:id" element={<PrivateRoute><WritingTestPage /></PrivateRoute>} />
+                <Route path="/tests/speaking/:id" element={<PrivateRoute><SpeakingTestPage /></PrivateRoute>} />
+                <Route path="/tests/result" element={<PrivateRoute><TestResultPage /></PrivateRoute>} />
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="*" element={<NotFoundPage />} />
@@ -36,4 +43,3 @@ function App() {
 }
 
 export default App;
-
