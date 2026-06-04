@@ -12,19 +12,9 @@ function DashboardPage() {
         statisticsAPI.getOverall().then(res => setOverall(res.data)).catch(() => {});
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
-    };
-
     return (
         <div style={styles.page}>
-
-            {/* Navbar */}
             <Navbar />
-
-            {/* Content */}
             <main style={styles.main}>
 
                 {/* Welcome */}
@@ -39,24 +29,14 @@ function DashboardPage() {
                     <div style={styles.welcome}>
                         <Skeleton height="32px" width="260px" style={{ marginBottom: '8px' }} />
                         <Skeleton height="16px" width="180px" />
-                   </div>
+                    </div>
                 )}
 
                 {/* Stats */}
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
                 <div style={styles.statsGrid}>
-                     {overall ? (
+                    {overall ? (
                         <>
-                            <a href="/vocabulary" style={styles.navCard}>
-                                <div style={styles.navCardIcon}>📚</div>
-                                <div style={styles.navCardTitle}>Lug'at</div>
-                                <div style={styles.navCardSub}>So'zlarni saqlash va takrorlash</div>
-                            </a>
-                            <a href="/statistics" style={styles.navCard}>
-                                <div style={styles.navCardIcon}>📊</div>
-                                <div style={styles.navCardTitle}>Statistika</div>
-                                <div style={styles.navCardSub}>Progress va zaif tomonlar</div>
-                            </a>
                             <div style={styles.statCard}>
                                 <div style={styles.statIcon}>✍️</div>
                                 <div style={styles.statLabel}>Writing</div>
@@ -77,7 +57,7 @@ function DashboardPage() {
                                     {overall.speaking.total_tests} ta test
                                 </div>
                             </div>
-                         </>
+                        </>
                     ) : (
                         <>
                             <div style={styles.statCard}>
@@ -86,11 +66,6 @@ function DashboardPage() {
                                 <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
                                 <Skeleton height="12px" width="100px" />
                             </div>
-                            <a href="/tests" style={styles.navCard}>
-                                <div style={styles.navCardIcon}>📝</div>
-                                <div style={styles.navCardTitle}>Testlar</div>
-                                    <div style={styles.navCardSub}>Mock testlarni boshlash</div>
-                            </a>
                             <div style={styles.statCard}>
                                 <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
                                 <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
@@ -100,6 +75,7 @@ function DashboardPage() {
                         </>
                     )}
                 </div>
+
                 {/* Navigation cards */}
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
                 <div style={styles.navGrid}>
@@ -113,6 +89,11 @@ function DashboardPage() {
                         <div style={styles.navCardTitle}>Statistika</div>
                         <div style={styles.navCardSub}>Progress va zaif tomonlar</div>
                     </a>
+                    <a href="/tests" style={styles.navCard}>
+                        <div style={styles.navCardIcon}>📝</div>
+                        <div style={styles.navCardTitle}>Testlar</div>
+                        <div style={styles.navCardSub}>Mock testlarni boshlash</div>
+                    </a>
                 </div>
 
             </main>
@@ -125,43 +106,8 @@ const styles = {
         minHeight: '100vh',
         backgroundColor: 'var(--bg-base)',
     },
-    navbar: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 32px',
-        borderBottom: '1px solid var(--border)',
-        backgroundColor: 'var(--bg-card)',
-    },
-    navLogo: {
-        fontSize: '22px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-    },
     logoAccent: {
         color: 'var(--accent)',
-    },
-    navLinks: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '24px',
-    },
-    navLink: {
-        color: 'var(--text-secondary)',
-        fontSize: '14px',
-        fontWeight: '500',
-        textDecoration: 'none',
-        transition: 'color 0.2s',
-    },
-    logoutBtn: {
-        padding: '8px 18px',
-        backgroundColor: 'transparent',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        color: 'var(--text-secondary)',
-        fontSize: '14px',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
     },
     main: {
         maxWidth: '900px',
