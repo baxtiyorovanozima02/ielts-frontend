@@ -3,14 +3,58 @@ import { authAPI, statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 
+function getStreak() {
+    const data = JSON.parse(localStorage.getItem('streak_data') || '{}');
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    if (data.lastVisit === today) return data.count || 1;
+    if (data.lastVisit === yesterday) {
+        const newCount = (data.count || 1) + 1;
+        localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: newCount }));
+        return newCount;
+    }
+    localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: 1 }));
+    return 1;
+}
+
+function getXP() {
+    return parseInt(localStorage.getItem('xp_total') || '0');
+}
+
+function getLevel(xp) {
+    if (xp >= 1000) return { level: 5, title: 'Expert', color: '#8b5cf6', next: null };
+    if (xp >= 500) return { level: 4, title: 'Advanced', color: '#3b82f6', next: 1000 };
+    if (xp >= 200) return { level: 3, title: 'Intermediate', color: '#10b981', next: 500 };
+    if (xp >= 50) return { level: 2, title: 'Beginner+', color: '#f59e0b', next: 200 };
+    return { level: 1, title: 'Beginner', color: '#ef4444', next: 50 };
+}
+
+function getDailyGoal() {
+    const saved = JSON.parse(localStorage.getItem('daily_goal') || '{}');
+    const today = new Date().toDateString();
+    if (saved.date !== today) return { done: 0, total: 3 };
+    return { done: saved.done || 0, total: 3 };
+}
+
 function DashboardPage() {
     const [user, setUser] = useState(null);
     const [overall, setOverall] = useState(null);
+    const [streak, setStreak] = useState(1);
+    const [xp, setXp] = useState(0);
+    const [dailyGoal, setDailyGoal] = useState({ done: 0, total: 3 });
 
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
         statisticsAPI.getOverall().then(res => setOverall(res.data)).catch(() => {});
+        setStreak(getStreak());
+        setXp(getXP());
+        setDailyGoal(getDailyGoal());
     }, []);
+
+    const level = getLevel(xp);
+    const xpProgress = level.next ? ((xp - [0, 50, 200, 500][level.level - 1]) / (level.next - [0, 50, 200, 500][level.level - 1])) * 100 : 100;
+    const dailyProgress = (dailyGoal.done / dailyGoal.total) * 100;
 
     return (
         <div style={styles.page}>
@@ -21,7 +65,7 @@ function DashboardPage() {
                 {user ? (
                     <div style={styles.welcome}>
                         <h1 style={styles.welcomeTitle}>
-                            Salom, <span style={styles.logoAccent}>{user.username}</span> 👋
+                            Salom, <span style={styles.accent}>{user.username}</span> 👋
                         </h1>
                         <p style={styles.welcomeSub}>{user.email}</p>
                     </div>
@@ -31,6 +75,69 @@ function DashboardPage() {
                         <Skeleton height="16px" width="180px" />
                     </div>
                 )}
+
+                {/* Gamification row */}
+                <div style={styles.gamRow}>
+
+                    {/* Streak */}
+                    <div style={styles.gamCard}>
+                        <div style={styles.gamIcon}>🔥</div>
+                        <div style={styles.gamValue}>{streak}</div>
+                        <div style={styles.gamLabel}>Kunlik streak</div>
+                        <div style={styles.gamSub}>kun ketma-ket</div>
+                    </div>
+
+                    {/* XP + Level */}
+                    <div style={{ ...styles.gamCard, flex: 2 }}>
+                        <div style={styles.levelHeader}>
+                            <div>
+                                <div style={styles.gamIcon}>⚡</div>
+                                <div style={styles.gamValue}>{xp} XP</div>
+                                <div style={styles.gamLabel}>
+                                    Level {level.level} —{' '}
+                                    <span style={{ color: level.color }}>{level.title}</span>
+                                </div>
+                            </div>
+                            <div style={{
+                                ...styles.levelBadge,
+                                backgroundColor: `${level.color}20`,
+                                color: level.color,
+                                border: `1px solid ${level.color}40`,
+                            }}>
+                                LVL {level.level}
+                            </div>
+                        </div>
+                        <div style={styles.progressBar}>
+                            <div style={{
+                                ...styles.progressFill,
+                                width: `${xpProgress}%`,
+                                backgroundColor: level.color,
+                            }} />
+                        </div>
+                        <div style={styles.progressLabels}>
+                            <span>{xp} XP</span>
+                            <span>{level.next ? `${level.next} XP gacha` : 'Max level! 🏆'}</span>
+                        </div>
+                    </div>
+
+                    {/* Daily Goal */}
+                    <div style={styles.gamCard}>
+                        <div style={styles.gamIcon}>🎯</div>
+                        <div style={styles.gamValue}>{dailyGoal.done}/{dailyGoal.total}</div>
+                        <div style={styles.gamLabel}>Kunlik maqsad</div>
+                        <div style={styles.progressBar}>
+                            <div style={{
+                                ...styles.progressFill,
+                                width: `${dailyProgress}%`,
+                                backgroundColor: dailyProgress === 100 ? '#10b981' : 'var(--accent)',
+                            }} />
+                        </div>
+                        <div style={styles.gamSub}>
+                            {dailyProgress === 100 ? '✅ Bajarildi!' : `${dailyGoal.total - dailyGoal.done} ta qoldi`}
+                        </div>
+                    </div>
+
+                </div>
 
                 {/* Stats */}
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
@@ -47,7 +154,7 @@ function DashboardPage() {
                                     {overall.writing.total_tests} ta test
                                 </div>
                             </div>
-                            <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
+                            <div style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)' }}>
                                 <div style={styles.statIcon}>🎤</div>
                                 <div style={styles.statLabel}>Speaking</div>
                                 <div style={styles.statScore}>
@@ -106,16 +213,13 @@ const styles = {
         minHeight: '100vh',
         backgroundColor: 'var(--bg-base)',
     },
-    logoAccent: {
-        color: 'var(--accent)',
-    },
     main: {
         maxWidth: '900px',
         margin: '0 auto',
         padding: '40px 24px',
     },
     welcome: {
-        marginBottom: '40px',
+        marginBottom: '32px',
     },
     welcomeTitle: {
         fontSize: '28px',
@@ -126,6 +230,73 @@ const styles = {
     welcomeSub: {
         color: 'var(--text-secondary)',
         fontSize: '14px',
+    },
+    accent: {
+        color: 'var(--accent)',
+    },
+    gamRow: {
+        display: 'flex',
+        gap: '16px',
+        marginBottom: '40px',
+    },
+    gamCard: {
+        flex: 1,
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: '14px',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+    },
+    gamIcon: {
+        fontSize: '28px',
+        marginBottom: '4px',
+    },
+    gamValue: {
+        fontSize: '32px',
+        fontWeight: '800',
+        color: 'var(--text-primary)',
+    },
+    gamLabel: {
+        fontSize: '13px',
+        color: 'var(--text-secondary)',
+        fontWeight: '500',
+    },
+    gamSub: {
+        fontSize: '12px',
+        color: 'var(--text-muted)',
+    },
+    levelHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '8px',
+    },
+    levelBadge: {
+        padding: '6px 14px',
+        borderRadius: '20px',
+        fontSize: '13px',
+        fontWeight: '700',
+    },
+    progressBar: {
+        height: '8px',
+        backgroundColor: 'var(--border)',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        marginTop: '8px',
+    },
+    progressFill: {
+        height: '100%',
+        borderRadius: '4px',
+        transition: 'width 1s ease',
+    },
+    progressLabels: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: '11px',
+        color: 'var(--text-muted)',
+        marginTop: '4px',
     },
     sectionTitle: {
         fontSize: '16px',
@@ -147,9 +318,6 @@ const styles = {
         borderRadius: 'var(--radius)',
         padding: '28px',
         borderTop: '3px solid var(--accent)',
-    },
-    statCardGreen: {
-        borderTop: '3px solid var(--accent-green)',
     },
     statIcon: {
         fontSize: '24px',
