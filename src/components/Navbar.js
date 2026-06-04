@@ -24,11 +24,13 @@ function Navbar() {
                 IELTS<span style={styles.logoAccent}>.uz</span>
             </a>
 
+
             {/* Nav links */}
             <div style={styles.links}>
                 <a href="/dashboard" style={styles.link}>Dashboard</a>
                 <a href="/vocabulary" style={styles.link}>Lug'at</a>
                 <a href="/statistics" style={styles.link}>Statistika</a>
+                <a href="/tests" style={styles.link}>Testlar</a>
             </div>
 
             {/* Right side */}
