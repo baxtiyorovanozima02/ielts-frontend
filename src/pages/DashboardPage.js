@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { authAPI, statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
+import Skeleton from '../components/Skeleton';
 
 function DashboardPage() {
     const [user, setUser] = useState(null);
@@ -27,41 +28,78 @@ function DashboardPage() {
             <main style={styles.main}>
 
                 {/* Welcome */}
-                {user && (
+                {user ? (
                     <div style={styles.welcome}>
                         <h1 style={styles.welcomeTitle}>
                             Salom, <span style={styles.logoAccent}>{user.username}</span> 👋
                         </h1>
                         <p style={styles.welcomeSub}>{user.email}</p>
                     </div>
+                ) : (
+                    <div style={styles.welcome}>
+                        <Skeleton height="32px" width="260px" style={{ marginBottom: '8px' }} />
+                        <Skeleton height="16px" width="180px" />
+                   </div>
                 )}
 
                 {/* Stats */}
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
                 <div style={styles.statsGrid}>
-                    <div style={styles.statCard}>
-                        <div style={styles.statIcon}>✍️</div>
-                        <div style={styles.statLabel}>Writing</div>
-                        <div style={styles.statScore}>
-                            {overall ? overall.writing.average_band_score ?? '—' : '—'}
-                        </div>
-                        <div style={styles.statSub}>
-                            {overall ? `${overall.writing.total_tests} ta test` : 'Yuklanmoqda...'}
-                        </div>
-                    </div>
-
-                    <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
-                        <div style={styles.statIcon}>🎤</div>
-                        <div style={styles.statLabel}>Speaking</div>
-                        <div style={styles.statScore}>
-                            {overall ? overall.speaking.average_band_score ?? '—' : '—'}
-                        </div>
-                        <div style={styles.statSub}>
-                            {overall ? `${overall.speaking.total_tests} ta test` : 'Yuklanmoqda...'}
-                        </div>
-                    </div>
+                     {overall ? (
+                        <>
+                            <a href="/vocabulary" style={styles.navCard}>
+                                <div style={styles.navCardIcon}>📚</div>
+                                <div style={styles.navCardTitle}>Lug'at</div>
+                                <div style={styles.navCardSub}>So'zlarni saqlash va takrorlash</div>
+                            </a>
+                            <a href="/statistics" style={styles.navCard}>
+                                <div style={styles.navCardIcon}>📊</div>
+                                <div style={styles.navCardTitle}>Statistika</div>
+                                <div style={styles.navCardSub}>Progress va zaif tomonlar</div>
+                            </a>
+                            <div style={styles.statCard}>
+                                <div style={styles.statIcon}>✍️</div>
+                                <div style={styles.statLabel}>Writing</div>
+                                <div style={styles.statScore}>
+                                    {overall.writing.average_band_score ?? '—'}
+                                </div>
+                                <div style={styles.statSub}>
+                                    {overall.writing.total_tests} ta test
+                                </div>
+                            </div>
+                            <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
+                                <div style={styles.statIcon}>🎤</div>
+                                <div style={styles.statLabel}>Speaking</div>
+                                <div style={styles.statScore}>
+                                    {overall.speaking.average_band_score ?? '—'}
+                                </div>
+                                <div style={styles.statSub}>
+                                    {overall.speaking.total_tests} ta test
+                                </div>
+                            </div>
+                         </>
+                    ) : (
+                        <>
+                            <div style={styles.statCard}>
+                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
+                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
+                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
+                                <Skeleton height="12px" width="100px" />
+                            </div>
+                            <a href="/tests" style={styles.navCard}>
+                                <div style={styles.navCardIcon}>📝</div>
+                                <div style={styles.navCardTitle}>Testlar</div>
+                                    <div style={styles.navCardSub}>Mock testlarni boshlash</div>
+                            </a>
+                            <div style={styles.statCard}>
+                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
+                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
+                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
+                                <Skeleton height="12px" width="100px" />
+                            </div>
+                        </>
+                    )}
                 </div>
-
                 {/* Navigation cards */}
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
                 <div style={styles.navGrid}>
