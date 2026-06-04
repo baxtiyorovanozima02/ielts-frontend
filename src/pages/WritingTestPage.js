@@ -10,7 +10,7 @@ function WritingTestPage() {
     const [answer, setAnswer] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(60 * 60); // 60 daqiqa
+    const [timeLeft, setTimeLeft] = useState(60 * 60);
 
     useEffect(() => {
         testsAPI.getTest(id)
@@ -19,7 +19,6 @@ function WritingTestPage() {
             .finally(() => setLoading(false));
     }, [id]);
 
-    // Timer
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft(prev => {
@@ -42,14 +41,24 @@ function WritingTestPage() {
 
     const wordCount = answer.trim() === '' ? 0 : answer.trim().split(/\s+/).length;
 
+    const addXP = (amount) => {
+        const current = parseInt(localStorage.getItem('xp_total') || '0');
+        localStorage.setItem('xp_total', current + amount);
+        const goal = JSON.parse(localStorage.getItem('daily_goal') || '{}');
+        const today = new Date().toDateString();
+        const done = goal.date === today ? (goal.done || 0) : 0;
+        localStorage.setItem('daily_goal', JSON.stringify({ date: today, done: done + 1 }));
+    };
+
     const handleSubmit = async () => {
         if (!answer.trim()) return;
         setSubmitting(true);
         try {
             const res = await testsAPI.submitWriting(id, { answer });
+            addXP(50);
             navigate('/tests/result', { state: { result: res.data, type: 'writing' } });
         } catch {
-            alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+            alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
         } finally {
             setSubmitting(false);
         }

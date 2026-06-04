@@ -13,7 +13,7 @@ function SpeakingTestPage() {
     const [recording, setRecording] = useState(false);
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [audioURL, setAudioURL] = useState('');
-    const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 daqiqa
+    const [timeLeft, setTimeLeft] = useState(15 * 60);
     const [chunks, setChunks] = useState([]);
 
     useEffect(() => {
@@ -40,6 +40,15 @@ function SpeakingTestPage() {
         const m = Math.floor(sec / 60).toString().padStart(2, '0');
         const s = (sec % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
+    };
+
+    const addXP = (amount) => {
+        const current = parseInt(localStorage.getItem('xp_total') || '0');
+        localStorage.setItem('xp_total', current + amount);
+        const goal = JSON.parse(localStorage.getItem('daily_goal') || '{}');
+        const today = new Date().toDateString();
+        const done = goal.date === today ? (goal.done || 0) : 0;
+        localStorage.setItem('daily_goal', JSON.stringify({ date: today, done: done + 1 }));
     };
 
     const startRecording = async () => {
@@ -82,6 +91,7 @@ function SpeakingTestPage() {
             const formData = new FormData();
             formData.append('audio', audioFile, 'speaking.wav');
             const res = await testsAPI.submitSpeaking(id, formData);
+            addXP(60);
             navigate('/tests/result', { state: { result: res.data, type: 'speaking' } });
         } catch {
             alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
@@ -142,7 +152,6 @@ function SpeakingTestPage() {
                     <div style={styles.recordCard}>
                         <div style={styles.taskLabel}>🎤 Yozib olish</div>
 
-                        {/* Mic button */}
                         <div style={styles.micSection}>
                             <div style={{
                                 ...styles.micBtn,
@@ -154,14 +163,13 @@ function SpeakingTestPage() {
                             </div>
                             <div style={styles.micStatus}>
                                 {recording
-                                    ? '🔴 Yozilmoqda... (to\'xtatish uchun bosing)'
+                                    ? "🔴 Yozilmoqda... (to'xtatish uchun bosing)"
                                     : audioURL
                                         ? '✅ Yozib olindi'
                                         : 'Boshlash uchun tugmani bosing'}
                             </div>
                         </div>
 
-                        {/* Audio player */}
                         {audioURL && (
                             <div style={styles.audioSection}>
                                 <div style={styles.taskLabel}>🎧 Tinglash</div>
@@ -169,7 +177,6 @@ function SpeakingTestPage() {
                             </div>
                         )}
 
-                        {/* Submit */}
                         <button
                             onClick={handleSubmit}
                             disabled={!audioFile || submitting}
@@ -320,7 +327,6 @@ const styles = {
         fontSize: '36px',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        boxShadow: '0 0 0 0 rgba(59,130,246,0.4)',
     },
     micBtnRecording: {
         backgroundColor: '#ef4444',
