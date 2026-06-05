@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { authAPI } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -8,26 +9,71 @@ function RegisterPage() {
         password: '',
         re_password: '',
     });
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const { showToast } = useToast();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (errors[e.target.name]) {
+            setErrors(prev => ({ ...prev, [e.target.name]: '' }));
+        }
+    };
+
+    const validate = () => {
+        const newErrors = {};
+
+        if (!formData.username.trim()) {
+            newErrors.username = "Username kiritish majburiy";
+        } else if (formData.username.length < 3) {
+            newErrors.username = "Username kamida 3 ta belgi bo'lishi kerak";
+        }
+
+        if (!formData.email.trim()) {
+            newErrors.email = "Email kiritish majburiy";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = "Email formati noto'g'ri";
+        }
+
+        if (!formData.password) {
+            newErrors.password = "Parol kiritish majburiy";
+        } else if (formData.password.length < 8) {
+            newErrors.password = "Parol kamida 8 ta belgi bo'lishi kerak";
+        }
+
+        if (!formData.re_password) {
+            newErrors.re_password = "Parolni takrorlash majburiy";
+        } else if (formData.password !== formData.re_password) {
+            newErrors.re_password = "Parollar mos kelmadi";
+        }
+
+        return newErrors;
     };
 
     const handleRegister = async () => {
-        if (formData.password !== formData.re_password) {
-            setError('Parollar mos kelmadi');
+        const newErrors = validate();
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
+        setErrors({});
         setLoading(true);
         try {
             await authAPI.register(formData);
-            setSuccess("Ro'yxatdan o'tdingiz! Endi kiring.");
+            setSuccess("Ro'yxatdan o'tdingiz! Kirish sahifasiga yo'naltirilmoqdasiz...");
+            showToast("Ro'yxatdan o'tdingiz!", 'success');
             setTimeout(() => window.location.href = '/login', 2000);
         } catch (err) {
-            setError("Xatolik yuz berdi. Qayta urinib ko'ring.");
+            const data = err.response?.data;
+            if (data?.username) {
+                setErrors(prev => ({ ...prev, username: "Bu username band" }));
+            } else if (data?.email) {
+                setErrors(prev => ({ ...prev, email: "Bu email allaqachon ro'yxatdan o'tgan" }));
+            } else {
+                setErrors({ general: "Xatolik yuz berdi. Qayta urinib ko'ring." });
+            }
+            showToast("Ro'yxatdan o'tishda xatolik", 'error');
         } finally {
             setLoading(false);
         }
@@ -37,11 +83,11 @@ function RegisterPage() {
         <div style={styles.page}>
             <div style={styles.card}>
 
-                <div style={styles.logo}>IELTS<span style={styles.logoAccent}>.uz</span></div>
+                <div style={styles.logo}>SelfStudy<span style={styles.logoAccent}>.uz</span></div>
                 <p style={styles.subtitle}>Yangi akkaunt yarating</p>
 
-                {error && <div style={styles.error}>{error}</div>}
-                {success && <div style={styles.success}>{success}</div>}
+                {errors.general && <div style={styles.errorBox}>{errors.general}</div>}
+                {success && <div style={styles.successBox}>{success}</div>}
 
                 <div style={styles.field}>
                     <label style={styles.label}>Username</label>
@@ -51,8 +97,12 @@ function RegisterPage() {
                         placeholder="username"
                         value={formData.username}
                         onChange={handleChange}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.username ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.username && <div style={styles.fieldError}>{errors.username}</div>}
                 </div>
 
                 <div style={styles.field}>
@@ -63,8 +113,12 @@ function RegisterPage() {
                         placeholder="email@example.com"
                         value={formData.email}
                         onChange={handleChange}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.email ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.email && <div style={styles.fieldError}>{errors.email}</div>}
                 </div>
 
                 <div style={styles.field}>
@@ -75,8 +129,12 @@ function RegisterPage() {
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={handleChange}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.password ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.password && <div style={styles.fieldError}>{errors.password}</div>}
                 </div>
 
                 <div style={styles.field}>
@@ -87,8 +145,12 @@ function RegisterPage() {
                         placeholder="••••••••"
                         value={formData.re_password}
                         onChange={handleChange}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.re_password ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.re_password && <div style={styles.fieldError}>{errors.re_password}</div>}
                 </div>
 
                 <button
@@ -140,7 +202,7 @@ const styles = {
         textAlign: 'center',
         marginBottom: '32px',
     },
-    error: {
+    errorBox: {
         backgroundColor: 'rgba(239,68,68,0.1)',
         border: '1px solid rgba(239,68,68,0.3)',
         color: '#f87171',
@@ -149,7 +211,7 @@ const styles = {
         fontSize: '14px',
         marginBottom: '20px',
     },
-    success: {
+    successBox: {
         backgroundColor: 'rgba(16,185,129,0.1)',
         border: '1px solid rgba(16,185,129,0.3)',
         color: '#34d399',
@@ -178,6 +240,13 @@ const styles = {
         fontSize: '15px',
         outline: 'none',
         fontFamily: 'Sora, sans-serif',
+        transition: 'border-color 0.2s',
+        boxSizing: 'border-box',
+    },
+    fieldError: {
+        color: '#f87171',
+        fontSize: '12px',
+        marginTop: '6px',
     },
     button: {
         width: '100%',
@@ -191,6 +260,7 @@ const styles = {
         cursor: 'pointer',
         fontFamily: 'Sora, sans-serif',
         marginTop: '8px',
+        transition: 'opacity 0.2s',
     },
     footer: {
         textAlign: 'center',

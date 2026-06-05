@@ -5,21 +5,46 @@ import { useToast } from '../context/ToastContext';
 function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const { showToast } = useToast();
+
+    const validate = () => {
+        const newErrors = {};
+        if (!username.trim()) {
+            newErrors.username = "Username kiritish majburiy";
+        }
+        if (!password) {
+            newErrors.password = "Parol kiritish majburiy";
+        } else if (password.length < 6) {
+            newErrors.password = "Parol kamida 6 ta belgi bo'lishi kerak";
+        }
+        return newErrors;
+    };
+
     const handleLogin = async () => {
+        const newErrors = validate();
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
         setLoading(true);
         try {
             const response = await authAPI.login({ username, password });
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
-            window.location.href = '/dashboard';
             showToast("Xush kelibsiz!", 'success');
+            window.location.href = '/dashboard';
         } catch (err) {
-            setError("Username yoki parol noto'g'ri");
-            showToast("Username yoki parol noto'g'ri", 'error');
-
+            const status = err.response?.status;
+            if (status === 401) {
+                setErrors({ general: "Username yoki parol noto'g'ri" });
+                showToast("Username yoki parol noto'g'ri", 'error');
+            } else {
+                setErrors({ general: "Server bilan bog'lanishda xatolik" });
+                showToast("Server bilan bog'lanishda xatolik", 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -33,10 +58,10 @@ function LoginPage() {
         <div style={styles.page}>
             <div style={styles.card}>
 
-                <div style={styles.logo}>IELTS<span style={styles.logoAccent}>.uz</span></div>
+                <div style={styles.logo}>SelfStudy<span style={styles.logoAccent}>.uz</span></div>
                 <p style={styles.subtitle}>Akkauntingizga kiring</p>
 
-                {error && <div style={styles.error}>{error}</div>}
+                {errors.general && <div style={styles.errorBox}>{errors.general}</div>}
 
                 <div style={styles.field}>
                     <label style={styles.label}>Username</label>
@@ -44,10 +69,17 @@ function LoginPage() {
                         type="text"
                         placeholder="username"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) => {
+                            setUsername(e.target.value);
+                            if (errors.username) setErrors(prev => ({ ...prev, username: '' }));
+                        }}
                         onKeyDown={handleKeyDown}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.username ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.username && <div style={styles.fieldError}>{errors.username}</div>}
                 </div>
 
                 <div style={styles.field}>
@@ -56,10 +88,17 @@ function LoginPage() {
                         type="password"
                         placeholder="••••••••"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                        }}
                         onKeyDown={handleKeyDown}
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            borderColor: errors.password ? '#ef4444' : undefined,
+                        }}
                     />
+                    {errors.password && <div style={styles.fieldError}>{errors.password}</div>}
                 </div>
 
                 <button
@@ -111,7 +150,7 @@ const styles = {
         textAlign: 'center',
         marginBottom: '32px',
     },
-    error: {
+    errorBox: {
         backgroundColor: 'rgba(239,68,68,0.1)',
         border: '1px solid rgba(239,68,68,0.3)',
         color: '#f87171',
@@ -141,6 +180,12 @@ const styles = {
         outline: 'none',
         fontFamily: 'Sora, sans-serif',
         transition: 'border-color 0.2s',
+        boxSizing: 'border-box',
+    },
+    fieldError: {
+        color: '#f87171',
+        fontSize: '12px',
+        marginTop: '6px',
     },
     button: {
         width: '100%',
