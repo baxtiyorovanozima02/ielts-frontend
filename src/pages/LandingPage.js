@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 function LandingPage() {
     const heroRef = useRef(null);
+
     const words = ['Band 7+', 'Band 8+', 'Muvaffaqiyat', 'Yuqori ball'];
     const [wordIndex, setWordIndex] = useState(0);
     const [displayed, setDisplayed] = useState('');
@@ -21,6 +22,27 @@ function LandingPage() {
         );
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
         return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        let angle = 0;
+        const el = document.getElementById('mesh-bg');
+        let raf;
+        const animate = () => {
+            angle += 0.3;
+            if (el) {
+                el.style.background = `
+                    radial-gradient(ellipse 80% 60% at ${20 + Math.sin(angle * 0.01) * 10}% ${20 + Math.cos(angle * 0.01) * 10}%, rgba(59,130,246,0.15) 0%, transparent 60%),
+                    radial-gradient(ellipse 60% 80% at ${80 + Math.cos(angle * 0.008) * 10}% ${10 + Math.sin(angle * 0.008) * 10}%, rgba(139,92,246,0.12) 0%, transparent 55%),
+                    radial-gradient(ellipse 70% 50% at ${50 + Math.sin(angle * 0.012) * 12}% ${80 + Math.cos(angle * 0.012) * 8}%, rgba(16,185,129,0.10) 0%, transparent 60%),
+                    radial-gradient(circle, #1e2d45 1px, transparent 1px)
+                `;
+                el.style.backgroundSize = 'auto, auto, auto, 32px 32px';
+            }
+            raf = requestAnimationFrame(animate);
+        };
+        raf = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(raf);
     }, []);
 
     useEffect(() => {
@@ -45,25 +67,28 @@ function LandingPage() {
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [displayed, isDeleting, wordIndex]);
+
     const features = [
         { icon: '🧠', title: 'AI Baholash', desc: "Writing va Speaking uchun sun'iy intellekt baholash" },
-        { icon: '📝', title: 'Mock Testlar', desc: 'Reading, Listening, Writing, Speaking — 4 bo\'lim' },
+        { icon: '📝', title: 'Mock Testlar', desc: "Reading, Listening, Writing, Speaking — 4 bo'lim" },
         { icon: '📊', title: 'Statistika', desc: 'Band score tarixi va zaif tomonlarni tahlil qilish' },
-        { icon: '📅', title: 'Shaxsiy Reja', desc: 'Har bir foydalanuvchi uchun alohida o\'quv rejasi' },
-        { icon: '📚', title: 'Lug\'at', desc: 'Spaced repetition bilan so\'z yodlash' },
+        { icon: '📅', title: 'Shaxsiy Reja', desc: "Har bir foydalanuvchi uchun alohida o'quv rejasi" },
+        { icon: '📚', title: "Lug'at", desc: "Spaced repetition bilan so'z yodlash" },
         { icon: '🤖', title: 'Telegram Bot', desc: 'Istalgan joyda mashq qilish imkoniyati' },
     ];
 
     const testimonials = [
-        { name: 'Ali X.', score: '7.5', text: '3 oyda bandimni 5.5 dan 7.5 ga chiqardim!', flag: '🇺🇿' },
-        { name: 'Nozima B.', score: '8.0', text: 'AI feedback juda aniq va foydali bo\'ldi.', flag: '🇺🇿' },
-        { name: 'Malika T.', score: '7.0', text: 'Speaking testlari menga eng ko\'p yordam berdi.', flag: '🇺🇿' },
+        { name: 'Ali X.', score: '7.5', text: "3 oyda bandimni 5.5 dan 7.5 ga chiqardim!", flag: '🇺🇿' },
+        { name: 'Nozima B.', score: '8.0', text: "AI feedback juda aniq va foydali bo'ldi.", flag: '🇺🇿' },
+        { name: 'Malika T.', score: '7.0', text: "Speaking testlari menga eng ko'p yordam berdi.", flag: '🇺🇿' },
     ];
 
     return (
         <div style={styles.page}>
-            <div style={styles.bgDots} />
+            {/* Animated mesh background */}
+            <div id="mesh-bg" style={styles.bgDots} />
 
+            {/* Navbar */}
             <nav style={styles.navbar}>
                 <div style={styles.logo}>
                     SelfStudy<span style={styles.accent}>.uz</span>
@@ -75,6 +100,7 @@ function LandingPage() {
                 </div>
             </nav>
 
+            {/* Hero */}
             <section style={styles.hero} ref={heroRef}>
                 <div style={styles.heroBadge}>
                     <span style={styles.badgeDot} />
@@ -108,8 +134,8 @@ function LandingPage() {
                 {/* Stats bar */}
                 <div style={styles.statsBar}>
                     {[
-                        { num: '50+', label: 'Faol foydalanuvchi' },
-                        { num: '4', label: 'IELTS bo\'limi' },
+                        { num: '50+', label: "Faol foydalanuvchi" },
+                        { num: '4', label: "IELTS bo'limi" },
                         { num: 'AI', label: 'Baholash tizimi' },
                         { num: '24/7', label: 'Ishlaydi' },
                     ].map((s, i) => (
@@ -128,10 +154,10 @@ function LandingPage() {
                     <p style={styles.sectionSub}>Har bir darajada nima qilish kerakligini bilib oling</p>
                 </div>
                 <div className="fade-in" style={{ ...styles.fadeEl, transitionDelay: '0.2s' }}>
-                    <div style={styles.bandRow}>
+                    <div style={styles.bandRow} className="band-row">
                         {[
-                            { band: '5.0', label: 'Boshlang\'ich', color: '#ef4444' },
-                            { band: '6.0', label: 'O\'rta', color: '#f59e0b' },
+                            { band: '5.0', label: "Boshlang'ich", color: '#ef4444' },
+                            { band: '6.0', label: "O'rta", color: '#f59e0b' },
                             { band: '7.0', label: 'Yaxshi', color: '#10b981' },
                             { band: '8.0', label: 'Ajoyib', color: '#3b82f6' },
                             { band: '9.0', label: 'Expert', color: '#8b5cf6' },
@@ -151,7 +177,7 @@ function LandingPage() {
                     <h2 style={styles.sectionTitle}>Nima imkoniyatlar bor?</h2>
                     <p style={styles.sectionSub}>Maqsadingizga yetish uchun kerak bo'lgan hamma narsa</p>
                 </div>
-                <div style={styles.featuresGrid}>
+                <div style={styles.featuresGrid} className="features-grid">
                     {features.map((f, i) => (
                         <div
                             key={i}
@@ -175,7 +201,7 @@ function LandingPage() {
                 <div className="fade-in" style={styles.fadeEl}>
                     <h2 style={styles.sectionTitle}>Foydalanuvchilar nima deydi?</h2>
                 </div>
-                <div style={styles.testimonialsGrid}>
+                <div style={styles.testimonialsGrid} className="testimonials-grid">
                     {testimonials.map((t, i) => (
                         <div
                             key={i}
@@ -207,7 +233,7 @@ function LandingPage() {
                     <h2 style={styles.sectionTitle}>Narxlar</h2>
                     <p style={styles.sectionSub}>Arzon, lekin kuchli</p>
                 </div>
-                <div style={styles.pricingGrid}>
+                <div style={styles.pricingGrid} className="pricing-grid">
                     {/* Free */}
                     <div className="fade-in" style={{ ...styles.fadeEl, ...styles.pricingCard }}>
                         <div style={styles.planName}>🆓 Free</div>
@@ -266,9 +292,6 @@ const styles = {
     bgDots: {
         position: 'fixed',
         top: 0, left: 0, right: 0, bottom: 0,
-        backgroundImage: 'radial-gradient(circle, #1e2d45 1px, transparent 1px)',
-        backgroundSize: '32px 32px',
-        opacity: 0.4,
         pointerEvents: 'none',
         zIndex: 0,
     },
@@ -354,6 +377,14 @@ const styles = {
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
+    },
+    cursor: {
+        display: 'inline-block',
+        color: '#3b82f6',
+        WebkitTextFillColor: '#3b82f6',
+        marginLeft: '2px',
+        animation: 'pulse 1s step-end infinite',
+        fontWeight: '300',
     },
     heroSubtitle: {
         fontSize: '18px',
@@ -466,11 +497,13 @@ const styles = {
         gap: '20px',
     },
     featureCard: {
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
+        backgroundColor: 'rgba(15,23,42,0.6)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(59,130,246,0.15)',
         borderRadius: '14px',
         padding: '28px 24px',
-        transition: 'border-color 0.2s, transform 0.2s',
+        transition: 'border-color 0.3s, transform 0.3s, box-shadow 0.3s',
+        cursor: 'default',
     },
     featureIcon: {
         fontSize: '36px',
@@ -649,13 +682,6 @@ const styles = {
         opacity: 0,
         transform: 'translateY(24px)',
         transition: 'opacity 0.6s ease, transform 0.6s ease',
-    },
-    cursor: {
-        display: 'inline-block',
-        color: '#3b82f6',
-        marginLeft: '2px',
-        animation: 'pulse 1s step-end infinite',
-        fontWeight: '300',
     },
 };
 
