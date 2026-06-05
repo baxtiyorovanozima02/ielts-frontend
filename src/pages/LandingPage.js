@@ -1,7 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function LandingPage() {
     const heroRef = useRef(null);
+    const words = ['Band 7+', 'Band 8+', 'Muvaffaqiyat', 'Yuqori ball'];
+    const [wordIndex, setWordIndex] = useState(0);
+    const [displayed, setDisplayed] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -19,6 +23,28 @@ function LandingPage() {
         return () => observer.disconnect();
     }, []);
 
+    useEffect(() => {
+        const currentWord = words[wordIndex];
+        let timeout;
+
+        if (!isDeleting && displayed.length < currentWord.length) {
+            timeout = setTimeout(() => {
+                setDisplayed(currentWord.slice(0, displayed.length + 1));
+            }, 80);
+        } else if (!isDeleting && displayed.length === currentWord.length) {
+            timeout = setTimeout(() => setIsDeleting(true), 1800);
+        } else if (isDeleting && displayed.length > 0) {
+            timeout = setTimeout(() => {
+                setDisplayed(currentWord.slice(0, displayed.length - 1));
+            }, 45);
+        } else if (isDeleting && displayed.length === 0) {
+            setIsDeleting(false);
+            setWordIndex(i => (i + 1) % words.length);
+        }
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayed, isDeleting, wordIndex]);
     const features = [
         { icon: '🧠', title: 'AI Baholash', desc: "Writing va Speaking uchun sun'iy intellekt baholash" },
         { icon: '📝', title: 'Mock Testlar', desc: 'Reading, Listening, Writing, Speaking — 4 bo\'lim' },
@@ -36,10 +62,8 @@ function LandingPage() {
 
     return (
         <div style={styles.page}>
-            {/* Animated background dots */}
             <div style={styles.bgDots} />
 
-            {/* Navbar */}
             <nav style={styles.navbar}>
                 <div style={styles.logo}>
                     SelfStudy<span style={styles.accent}>.uz</span>
@@ -51,7 +75,6 @@ function LandingPage() {
                 </div>
             </nav>
 
-            {/* Hero */}
             <section style={styles.hero} ref={heroRef}>
                 <div style={styles.heroBadge}>
                     <span style={styles.badgeDot} />
@@ -60,7 +83,10 @@ function LandingPage() {
 
                 <h1 style={styles.heroTitle}>
                     IELTS da{' '}
-                    <span style={styles.gradientText}>Band 7+</span>
+                    <span style={styles.gradientText}>
+                        {displayed}
+                        <span style={styles.cursor}>|</span>
+                    </span>
                     <br />
                     olishga tayyor bo'ling
                 </h1>
@@ -623,6 +649,13 @@ const styles = {
         opacity: 0,
         transform: 'translateY(24px)',
         transition: 'opacity 0.6s ease, transform 0.6s ease',
+    },
+    cursor: {
+        display: 'inline-block',
+        color: '#3b82f6',
+        marginLeft: '2px',
+        animation: 'pulse 1s step-end infinite',
+        fontWeight: '300',
     },
 };
 
