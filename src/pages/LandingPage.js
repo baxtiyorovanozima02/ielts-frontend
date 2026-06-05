@@ -187,6 +187,23 @@ function LandingPage() {
                                 ...styles.featureCard,
                                 transitionDelay: `${i * 0.1}s`,
                             }}
+                            onMouseMove={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const y = e.clientY - rect.top;
+                                const cx = rect.width / 2;
+                                const cy = rect.height / 2;
+                                const rotateX = ((y - cy) / cy) * -10;
+                                const rotateY = ((x - cx) / cx) * 10;
+                                e.currentTarget.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+                                e.currentTarget.style.boxShadow = '0 20px 40px rgba(59,130,246,0.2)';
+                                e.currentTarget.style.borderColor = 'rgba(59,130,246,0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)';
+                                e.currentTarget.style.boxShadow = 'none';
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                            }}
                         >
                             <div style={styles.featureIcon}>{f.icon}</div>
                             <div style={styles.featureTitle}>{f.title}</div>
