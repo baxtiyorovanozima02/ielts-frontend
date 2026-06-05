@@ -6,16 +6,76 @@ import {
     Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 
+function EmptyState({ icon, title, desc, btnText, btnHref }) {
+    return (
+        <div style={emptyStyles.wrap}>
+            <div style={emptyStyles.icon}>{icon}</div>
+            <div style={emptyStyles.title}>{title}</div>
+            <div style={emptyStyles.desc}>{desc}</div>
+            {btnText && (
+                <a href={btnHref} style={emptyStyles.btn}>{btnText}</a>
+            )}
+        </div>
+    );
+}
+
+const emptyStyles = {
+    wrap: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '48px 24px',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px dashed var(--border)',
+        borderRadius: 'var(--radius)',
+        textAlign: 'center',
+    },
+    icon: {
+        fontSize: '48px',
+        marginBottom: '16px',
+        filter: 'grayscale(0.2)',
+    },
+    title: {
+        fontSize: '16px',
+        fontWeight: '600',
+        color: 'var(--text-primary)',
+        marginBottom: '8px',
+    },
+    desc: {
+        fontSize: '13px',
+        color: 'var(--text-muted)',
+        lineHeight: '1.6',
+        maxWidth: '280px',
+        marginBottom: '20px',
+    },
+    btn: {
+        display: 'inline-block',
+        padding: '10px 24px',
+        backgroundColor: 'var(--accent)',
+        color: 'white',
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '600',
+        textDecoration: 'none',
+    },
+};
+
 function StatisticsPage() {
     const [history, setHistory] = useState({ writing: [], speaking: [] });
     const [weakAreas, setWeakAreas] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        statisticsAPI.getHistory().then(res => setHistory(res.data)).catch(() => {});
-        statisticsAPI.getWeakAreas().then(res => setWeakAreas(res.data.weak_areas)).catch(() => {});
+        Promise.all([
+            statisticsAPI.getHistory(),
+            statisticsAPI.getWeakAreas(),
+        ]).then(([histRes, weakRes]) => {
+            setHistory(histRes.data);
+            setWeakAreas(weakRes.data.weak_areas);
+        }).catch(() => {}).finally(() => setLoading(false));
     }, []);
 
-    // Grafik uchun ma'lumot tayyorlash
     const chartData = () => {
         const maxLen = Math.max(history.writing.length, history.speaking.length);
         if (maxLen === 0) return [];
@@ -31,6 +91,21 @@ function StatisticsPage() {
     };
 
     const data = chartData();
+    const hasAnyData = history.writing.length > 0 || history.speaking.length > 0;
+
+    if (loading) {
+        return (
+            <div style={styles.page}>
+                <Navbar />
+                <main style={styles.main}>
+                    <div style={styles.loadingWrap}>
+                        <div style={styles.loadingDot} />
+                        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Yuklanmoqda...</div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div style={styles.page}>
@@ -38,6 +113,17 @@ function StatisticsPage() {
             <main style={styles.main}>
 
                 <h1 style={styles.pageTitle}>Statistika</h1>
+
+                {/* Agar hech qanday ma'lumot yo'q bo'lsa */}
+                {!hasAnyData && (
+                    <EmptyState
+                        icon="📊"
+                        title="Hali natijalar yo'q"
+                        desc="Birinchi testingizni topshiring va natijalaringiz shu yerda ko'rinadi"
+                        btnText="Testlarga o'tish →"
+                        btnHref="/tests"
+                    />
+                )}
 
                 {/* Zaif tomonlar */}
                 {weakAreas.length > 0 && (
@@ -55,59 +141,57 @@ function StatisticsPage() {
                 )}
 
                 {/* Grafik */}
-                {data.length > 0 ? (
+                {hasAnyData && (
                     <div style={styles.chartCard}>
                         <h2 style={styles.cardTitle}>📈 Band Score tarixi</h2>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="#4b5563"
-                                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                                />
-                                <YAxis
-                                    domain={[0, 9]}
-                                    stroke="#4b5563"
-                                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#0f172a',
-                                        border: '1px solid #1e2d45',
-                                        borderRadius: '8px',
-                                        color: '#f1f5f9',
-                                    }}
-                                />
-                                <Legend
-                                    wrapperStyle={{ color: '#6b7280', fontSize: '13px' }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="Writing"
-                                    stroke="#3b82f6"
-                                    strokeWidth={2}
-                                    dot={{ fill: '#3b82f6', r: 4 }}
-                                    activeDot={{ r: 6 }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="Speaking"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                    dot={{ fill: '#10b981', r: 4 }}
-                                    activeDot={{ r: 6 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                ) : (
-                    <div style={styles.chartCard}>
-                        <h2 style={styles.cardTitle}>📈 Band Score tarixi</h2>
-                        <div style={styles.chartEmpty}>
-                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
-                            <div>Hali natijalar yo'q. Test topshiring!</div>
-                        </div>
+                        {data.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke="#4b5563"
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                    />
+                                    <YAxis
+                                        domain={[0, 9]}
+                                        stroke="#4b5563"
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: '#0f172a',
+                                            border: '1px solid #1e2d45',
+                                            borderRadius: '8px',
+                                            color: '#f1f5f9',
+                                        }}
+                                    />
+                                    <Legend wrapperStyle={{ color: '#6b7280', fontSize: '13px' }} />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Writing"
+                                        stroke="#3b82f6"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#3b82f6', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Speaking"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#10b981', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <EmptyState
+                                icon="📈"
+                                title="Grafik uchun ma'lumot yo'q"
+                                desc="Testlarni topshirgach grafik shu yerda ko'rinadi"
+                            />
+                        )}
                     </div>
                 )}
 
@@ -115,7 +199,13 @@ function StatisticsPage() {
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>✍️ Writing tarixi</h2>
                     {history.writing.length === 0 ? (
-                        <div style={styles.empty}>Hali natija yo'q</div>
+                        <EmptyState
+                            icon="✍️"
+                            title="Writing testlari yo'q"
+                            desc="Hali birorta writing testi topshirmagansiz"
+                            btnText="Writing testini boshlash →"
+                            btnHref="/tests"
+                        />
                     ) : (
                         history.writing.map((r, i) => (
                             <div key={i} style={styles.historyCard}>
@@ -135,7 +225,13 @@ function StatisticsPage() {
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>🎤 Speaking tarixi</h2>
                     {history.speaking.length === 0 ? (
-                        <div style={styles.empty}>Hali natija yo'q</div>
+                        <EmptyState
+                            icon="🎤"
+                            title="Speaking testlari yo'q"
+                            desc="Hali birorta speaking testi topshirmagansiz"
+                            btnText="Speaking testini boshlash →"
+                            btnHref="/tests"
+                        />
                     ) : (
                         history.speaking.map((r, i) => (
                             <div key={i} style={{ ...styles.historyCard, ...styles.historyCardGreen }}>
@@ -173,6 +269,21 @@ const styles = {
         fontWeight: '700',
         color: 'var(--text-primary)',
         marginBottom: '32px',
+    },
+    loadingWrap: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '80px',
+    },
+    loadingDot: {
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        border: '3px solid var(--border)',
+        borderTop: '3px solid var(--accent)',
+        animation: 'spin 0.8s linear infinite',
     },
     warningCard: {
         backgroundColor: 'rgba(245, 158, 11, 0.08)',
@@ -219,12 +330,6 @@ const styles = {
         color: 'var(--text-primary)',
         marginBottom: '24px',
     },
-    chartEmpty: {
-        textAlign: 'center',
-        padding: '40px',
-        color: 'var(--text-muted)',
-        fontSize: '14px',
-    },
     section: {
         marginBottom: '40px',
     },
@@ -235,15 +340,6 @@ const styles = {
         marginBottom: '16px',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
-    },
-    empty: {
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: '24px',
-        textAlign: 'center',
-        color: 'var(--text-muted)',
-        fontSize: '14px',
     },
     historyCard: {
         backgroundColor: 'var(--bg-card)',
