@@ -131,4 +131,47 @@ input:-webkit-autofill:focus {
     .hamburger-btn {
         display: flex !important;
     }
+
+     .gam-row {
+        flex-direction: column !important;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .nav-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .test-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .testimonials-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .band-row {
+        flex-wrap: wrap !important;
+    }
+    .pricing-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .hero-title {
+        font-size: 36px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 26px !important;
+    }
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .score-card {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
 }
