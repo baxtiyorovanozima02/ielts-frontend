@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -12,7 +13,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import TestsPage from './pages/TestsPage';
 import WritingTestPage from './pages/WritingTestPage';
 import SpeakingTestPage from './pages/SpeakingTestPage';
-import TestResultPage from './pages/TestResultPage'; // ✅ yangi
+import TestResultPage from './pages/TestResultPage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
@@ -21,24 +22,26 @@ function PrivateRoute({ children }) {
 
 function App() {
     return (
-        <Router>
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-                <Route path="/vocabulary" element={<PrivateRoute><VocabularyPage /></PrivateRoute>} />
-                <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
-                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-                <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
-                <Route path="/tests" element={<PrivateRoute><TestsPage /></PrivateRoute>} />
-                <Route path="/tests/writing/:id" element={<PrivateRoute><WritingTestPage /></PrivateRoute>} />
-                <Route path="/tests/speaking/:id" element={<PrivateRoute><SpeakingTestPage /></PrivateRoute>} />
-                <Route path="/tests/result" element={<PrivateRoute><TestResultPage /></PrivateRoute>} /> {/* ✅ yangi */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-        </Router>
+        <ErrorBoundary>
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/dashboard" element={<PrivateRoute><ErrorBoundary><DashboardPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/vocabulary" element={<PrivateRoute><ErrorBoundary><VocabularyPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/statistics" element={<PrivateRoute><ErrorBoundary><StatisticsPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/profile" element={<PrivateRoute><ErrorBoundary><ProfilePage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/settings" element={<PrivateRoute><ErrorBoundary><SettingsPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/tests" element={<PrivateRoute><ErrorBoundary><TestsPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/tests/writing/:id" element={<PrivateRoute><ErrorBoundary><WritingTestPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/tests/speaking/:id" element={<PrivateRoute><ErrorBoundary><SpeakingTestPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/tests/result" element={<PrivateRoute><ErrorBoundary><TestResultPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/pricing" element={<PricingPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+            </Router>
+        </ErrorBoundary>
     );
 }
 
