@@ -4,6 +4,7 @@ import { authAPI } from '../services/api';
 function Navbar() {
     const [user, setUser] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
@@ -17,57 +18,86 @@ function Navbar() {
 
     const initials = user?.username?.slice(0, 2).toUpperCase() || '??';
 
+    const links = [
+        { href: '/dashboard', label: 'Dashboard' },
+        { href: '/vocabulary', label: "Lug'at" },
+        { href: '/statistics', label: 'Statistika' },
+        { href: '/tests', label: 'Testlar' },
+        { href: '/profile', label: 'Profil' },
+    ];
+
     return (
-        <nav style={styles.navbar}>
-            {/* Logo */}
-            <a href="/dashboard" style={styles.logo}>
-                SelfStudy<span style={styles.logoAccent}>.uz</span>
-            </a>
+        <>
+            <nav style={styles.navbar}>
+                <a href="/dashboard" style={styles.logo}>
+                    SelfStudy<span style={styles.logoAccent}>.uz</span>
+                </a>
 
+                <div style={styles.links} className="navbar-links">
+                    {links.map(l => (
+                        <a key={l.href} href={l.href} style={styles.link}>{l.label}</a>
+                    ))}
+                </div>
 
-            {/* Nav links */}
-            <div style={styles.links}>
-                <a href="/dashboard" style={styles.link}>Dashboard</a>
-                <a href="/vocabulary" style={styles.link}>Lug'at</a>
-                <a href="/statistics" style={styles.link}>Statistika</a>
-                <a href="/tests" style={styles.link}>Testlar</a>
-                <a href="/profile" style={styles.link}>Profil</a>
-            </div>
+                <div style={styles.right}>
+                    <button style={styles.iconBtn} title="Bildirishnomalar">
+                        🔔
+                    </button>
 
-            {/* Right side */}
-            <div style={styles.right}>
-                {/* Notification bell */}
-                <button style={styles.iconBtn} title="Bildirishnomalar">
-                    🔔
-                </button>
+                    <div style={styles.avatarWrap}>
+                        <div
+                            style={styles.avatar}
+                            onClick={() => setMenuOpen(!menuOpen)}
+                        >
+                            {initials}
+                        </div>
 
-                {/* Avatar dropdown */}
-                <div style={styles.avatarWrap}>
-                    <div
-                        style={styles.avatar}
-                        onClick={() => setMenuOpen(!menuOpen)}
-                    >
-                        {initials}
+                        {menuOpen && (
+                            <div style={styles.dropdown}>
+                                <div style={styles.dropdownUser}>
+                                    <div style={styles.dropdownName}>{user?.username}</div>
+                                    <div style={styles.dropdownEmail}>{user?.email}</div>
+                                </div>
+                                <hr style={styles.divider} />
+                                <a href="/profile" style={styles.dropdownItem}>👤 Profil</a>
+                                <a href="/settings" style={styles.dropdownItem}>⚙️ Sozlamalar</a>
+                                <hr style={styles.divider} />
+                                <button onClick={handleLogout} style={styles.dropdownLogout}>
+                                    🚪 Chiqish
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {menuOpen && (
-                        <div style={styles.dropdown}>
-                            <div style={styles.dropdownUser}>
-                                <div style={styles.dropdownName}>{user?.username}</div>
-                                <div style={styles.dropdownEmail}>{user?.email}</div>
-                            </div>
-                            <hr style={styles.divider} />
-                            <a href="/profile" style={styles.dropdownItem}>👤 Profil</a>
-                            <a href="/settings" style={styles.dropdownItem}>⚙️ Sozlamalar</a>
-                            <hr style={styles.divider} />
-                            <button onClick={handleLogout} style={styles.dropdownLogout}>
-                                🚪 Chiqish
-                            </button>
-                        </div>
-                    )}
+                    <button
+                        className="hamburger-btn"
+                        style={styles.hamburger}
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                    >
+                        {mobileOpen ? '✕' : '☰'}
+                    </button>
                 </div>
-            </div>
-        </nav>
+            </nav>
+
+            {mobileOpen && (
+                <div style={styles.mobileMenu}>
+                    {links.map(l => (
+                        <a
+                            key={l.href}
+                            href={l.href}
+                            style={styles.mobileLink}
+                            onClick={() => setMobileOpen(false)}
+                        >
+                            {l.label}
+                        </a>
+                    ))}
+                    <hr style={styles.divider} />
+                    <button onClick={handleLogout} style={styles.mobileLogout}>
+                        🚪 Chiqish
+                    </button>
+                </div>
+            )}
+        </>
     );
 }
 
@@ -89,6 +119,7 @@ const styles = {
         fontWeight: '700',
         color: 'var(--text-primary)',
         textDecoration: 'none',
+        flexShrink: 0,
     },
     logoAccent: {
         color: 'var(--accent)',
@@ -96,6 +127,7 @@ const styles = {
     links: {
         display: 'flex',
         gap: '8px',
+
     },
     link: {
         color: 'var(--text-secondary)',
@@ -136,6 +168,48 @@ const styles = {
         fontSize: '14px',
         cursor: 'pointer',
         userSelect: 'none',
+    },
+    hamburger: {
+        display: 'none',
+        background: 'transparent',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        cursor: 'pointer',
+        fontSize: '18px',
+        color: 'var(--text-primary)',
+        fontFamily: 'Sora, sans-serif',
+    },
+    mobileMenu: {
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--bg-card)',
+        borderBottom: '1px solid var(--border)',
+        padding: '16px 24px',
+        gap: '4px',
+        position: 'sticky',
+        top: '64px',
+        zIndex: 99,
+    },
+    mobileLink: {
+        color: 'var(--text-secondary)',
+        fontSize: '15px',
+        fontWeight: '500',
+        textDecoration: 'none',
+        padding: '12px 8px',
+        borderRadius: '8px',
+        borderBottom: '1px solid var(--border)',
+    },
+    mobileLogout: {
+        background: 'transparent',
+        border: 'none',
+        color: '#f87171',
+        fontSize: '15px',
+        fontWeight: '500',
+        padding: '12px 8px',
+        textAlign: 'left',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
     },
     dropdown: {
         position: 'absolute',

@@ -58,3 +58,77 @@ input:-webkit-autofill:focus {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
 }
+
+@media (max-width: 768px) {
+
+    .navbar-links {
+        display: none;
+    }
+
+    .stats-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .nav-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .gam-row {
+        flex-direction: column !important;
+    }
+
+    .test-layout-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .features-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .pricing-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .band-row {
+        flex-wrap: wrap !important;
+    }
+    .hero-title {
+        font-size: 36px !important;
+    }
+
+    .testimonials-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 28px !important;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .score-card-flex {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    .review-btns {
+        flex-direction: column !important;
+    }
+}
+.hamburger-btn {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .navbar-links {
+        display: none !important;
+    }
+    .hamburger-btn {
+        display: flex !important;
+    }
+}
