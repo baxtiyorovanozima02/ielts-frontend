@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid,
+    Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 
 function StatisticsPage() {
     const [history, setHistory] = useState({ writing: [], speaking: [] });
@@ -11,17 +15,31 @@ function StatisticsPage() {
         statisticsAPI.getWeakAreas().then(res => setWeakAreas(res.data.weak_areas)).catch(() => {});
     }, []);
 
+    // Grafik uchun ma'lumot tayyorlash
+    const chartData = () => {
+        const maxLen = Math.max(history.writing.length, history.speaking.length);
+        if (maxLen === 0) return [];
+        const data = [];
+        for (let i = 0; i < maxLen; i++) {
+            data.push({
+                name: `Test ${i + 1}`,
+                Writing: history.writing[i]?.band_score || null,
+                Speaking: history.speaking[i]?.band_score || null,
+            });
+        }
+        return data;
+    };
+
+    const data = chartData();
+
     return (
         <div style={styles.page}>
-
-            {/* Navbar */}
             <Navbar />
-
             <main style={styles.main}>
 
                 <h1 style={styles.pageTitle}>Statistika</h1>
 
-                {/* Weak areas */}
+                {/* Zaif tomonlar */}
                 {weakAreas.length > 0 && (
                     <div style={styles.warningCard}>
                         <div style={styles.warningTitle}>⚠️ Zaif tomonlar</div>
@@ -36,7 +54,64 @@ function StatisticsPage() {
                     </div>
                 )}
 
-                {/* Writing history */}
+                {/* Grafik */}
+                {data.length > 0 ? (
+                    <div style={styles.chartCard}>
+                        <h2 style={styles.cardTitle}>📈 Band Score tarixi</h2>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="#4b5563"
+                                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                                />
+                                <YAxis
+                                    domain={[0, 9]}
+                                    stroke="#4b5563"
+                                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#0f172a',
+                                        border: '1px solid #1e2d45',
+                                        borderRadius: '8px',
+                                        color: '#f1f5f9',
+                                    }}
+                                />
+                                <Legend
+                                    wrapperStyle={{ color: '#6b7280', fontSize: '13px' }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="Writing"
+                                    stroke="#3b82f6"
+                                    strokeWidth={2}
+                                    dot={{ fill: '#3b82f6', r: 4 }}
+                                    activeDot={{ r: 6 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="Speaking"
+                                    stroke="#10b981"
+                                    strokeWidth={2}
+                                    dot={{ fill: '#10b981', r: 4 }}
+                                    activeDot={{ r: 6 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div style={styles.chartCard}>
+                        <h2 style={styles.cardTitle}>📈 Band Score tarixi</h2>
+                        <div style={styles.chartEmpty}>
+                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
+                            <div>Hali natijalar yo'q. Test topshiring!</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Writing tarixi */}
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>✍️ Writing tarixi</h2>
                     {history.writing.length === 0 ? (
@@ -56,7 +131,7 @@ function StatisticsPage() {
                     )}
                 </div>
 
-                {/* Speaking history */}
+                {/* Speaking tarixi */}
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>🎤 Speaking tarixi</h2>
                     {history.speaking.length === 0 ? (
@@ -88,33 +163,6 @@ const styles = {
         minHeight: '100vh',
         backgroundColor: 'var(--bg-base)',
     },
-    navbar: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 32px',
-        borderBottom: '1px solid var(--border)',
-        backgroundColor: 'var(--bg-card)',
-    },
-    navLogo: {
-        fontSize: '22px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-        textDecoration: 'none',
-    },
-    logoAccent: {
-        color: 'var(--accent)',
-    },
-    navLinks: {
-        display: 'flex',
-        gap: '24px',
-    },
-    navLink: {
-        color: 'var(--text-secondary)',
-        fontSize: '14px',
-        fontWeight: '500',
-        textDecoration: 'none',
-    },
     main: {
         maxWidth: '800px',
         margin: '0 auto',
@@ -131,7 +179,7 @@ const styles = {
         border: '1px solid rgba(245, 158, 11, 0.25)',
         borderRadius: 'var(--radius)',
         padding: '20px 24px',
-        marginBottom: '32px',
+        marginBottom: '24px',
     },
     warningTitle: {
         fontSize: '15px',
@@ -157,6 +205,25 @@ const styles = {
         fontSize: '14px',
         fontWeight: '600',
         color: '#fbbf24',
+    },
+    chartCard: {
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius)',
+        padding: '28px',
+        marginBottom: '32px',
+    },
+    cardTitle: {
+        fontSize: '16px',
+        fontWeight: '600',
+        color: 'var(--text-primary)',
+        marginBottom: '24px',
+    },
+    chartEmpty: {
+        textAlign: 'center',
+        padding: '40px',
+        color: 'var(--text-muted)',
+        fontSize: '14px',
     },
     section: {
         marginBottom: '40px',
