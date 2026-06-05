@@ -21,7 +21,7 @@ function Navbar() {
         <nav style={styles.navbar}>
             {/* Logo */}
             <a href="/dashboard" style={styles.logo}>
-                IELTS<span style={styles.logoAccent}>.uz</span>
+                SelfStudy<span style={styles.logoAccent}>.uz</span>
             </a>
 
 
@@ -31,6 +31,7 @@ function Navbar() {
                 <a href="/vocabulary" style={styles.link}>Lug'at</a>
                 <a href="/statistics" style={styles.link}>Statistika</a>
                 <a href="/tests" style={styles.link}>Testlar</a>
+                <a href="/profile" style={styles.link}>Profil</a>
             </div>
 
             {/* Right side */}
