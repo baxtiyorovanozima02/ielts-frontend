@@ -25,6 +25,10 @@ function TestResultPage() {
     const bandScore = result.band_score || result.score || 0;
     const feedback = result.feedback || result.ai_feedback || '';
     const criteria = result.criteria || null;
+    const correct = result.correct ?? null;
+    const total = result.total ?? null;
+    const percentage = result.percentage ?? null;
+    const testTitle = result.test_title || '';
 
     const getBandColor = (score) => {
         if (score >= 7) return '#10b981';
@@ -40,6 +44,15 @@ function TestResultPage() {
         return "Ko'proq mashq qiling 💪";
     };
 
+    const typeConfig = {
+        writing:   { icon: '✍️', label: 'Writing',   color: 'var(--accent)' },
+        speaking:  { icon: '🎤', label: 'Speaking',  color: '#10b981' },
+        reading:   { icon: '📖', label: 'Reading',   color: '#3b82f6' },
+        listening: { icon: '🎧', label: 'Listening', color: '#f59e0b' },
+    };
+
+    const config = typeConfig[type] || typeConfig.writing;
+
     return (
         <div style={styles.page}>
             <Navbar />
@@ -50,28 +63,29 @@ function TestResultPage() {
                     <div style={styles.breadcrumb}>
                         <a href="/tests" style={styles.breadcrumbLink}>Testlar</a>
                         <span style={styles.breadcrumbSep}>/</span>
-                        <span>{type === 'writing' ? 'Writing' : 'Speaking'}</span>
+                        <span>{config.label}</span>
                         <span style={styles.breadcrumbSep}>/</span>
                         <span>Natija</span>
                     </div>
                     <h1 style={styles.title}>Test natijasi</h1>
+                    {testTitle && (
+                        <p style={styles.testTitle}>{testTitle}</p>
+                    )}
                 </div>
 
                 {/* Band score card */}
                 <div style={styles.scoreCard}>
                     <div style={styles.scoreLeft}>
                         <div style={styles.scoreLabel}>Band Score</div>
-                        <div style={{
-                            ...styles.scoreBig,
-                            color: getBandColor(bandScore)
-                        }}>
+                        <div style={{ ...styles.scoreBig, color: getBandColor(bandScore) }}>
                             {bandScore}
                         </div>
                         <div style={styles.scoreLabel}>/ 9.0</div>
                     </div>
                     <div style={styles.scoreRight}>
                         <div style={styles.scoreType}>
-                            {type === 'writing' ? '✍️ Writing' : '🎤 Speaking'}
+                            <span style={{ marginRight: '8px' }}>{config.icon}</span>
+                            {config.label}
                         </div>
                         <div style={{
                             ...styles.scoreBadge,
@@ -97,7 +111,47 @@ function TestResultPage() {
                     </div>
                 </div>
 
-                {/* Criteria (agar mavjud bo'lsa) */}
+                {/* Reading / Listening — qo'shimcha statistika */}
+                {(type === 'reading' || type === 'listening') && correct !== null && (
+                    <div style={styles.card}>
+                        <h2 style={styles.cardTitle}>📊 Natija tafsiloti</h2>
+                        <div style={styles.statsRow}>
+                            <div style={styles.statBox}>
+                                <div style={styles.statValue}>{correct} / {total}</div>
+                                <div style={styles.statLabel}>To'g'ri javoblar</div>
+                            </div>
+                            <div style={styles.statBox}>
+                                <div style={{ ...styles.statValue, color: getBandColor(bandScore) }}>
+                                    {percentage}%
+                                </div>
+                                <div style={styles.statLabel}>Foiz</div>
+                            </div>
+                            <div style={styles.statBox}>
+                                <div style={{ ...styles.statValue, color: config.color }}>
+                                    {bandScore}
+                                </div>
+                                <div style={styles.statLabel}>Band Score</div>
+                            </div>
+                        </div>
+
+                        {/* Foiz progress */}
+                        <div style={{ marginTop: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Umumiy natija</span>
+                                <span style={{ fontSize: '13px', fontWeight: '600', color: getBandColor(bandScore) }}>{percentage}%</span>
+                            </div>
+                            <div style={styles.progressBar}>
+                                <div style={{
+                                    ...styles.progressFill,
+                                    width: `${percentage}%`,
+                                    backgroundColor: getBandColor(bandScore),
+                                }} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Writing/Speaking criteria (agar mavjud bo'lsa) */}
                 {criteria && (
                     <div style={styles.card}>
                         <h2 style={styles.cardTitle}>📊 Mezonlar bo'yicha baho</h2>
@@ -128,7 +182,7 @@ function TestResultPage() {
                     </div>
                 )}
 
-                {/* AI Feedback */}
+                {/* AI Feedback (Writing/Speaking uchun) */}
                 {feedback && (
                     <div style={styles.card}>
                         <h2 style={styles.cardTitle}>🤖 AI Fikr-mulohaza</h2>
@@ -214,6 +268,12 @@ const styles = {
         fontSize: '28px',
         fontWeight: '700',
         color: 'var(--text-primary)',
+        marginBottom: '4px',
+    },
+    testTitle: {
+        fontSize: '14px',
+        color: 'var(--text-muted)',
+        marginTop: '4px',
     },
     scoreCard: {
         backgroundColor: 'var(--bg-card)',
@@ -254,6 +314,8 @@ const styles = {
         fontSize: '16px',
         fontWeight: '600',
         color: 'var(--text-primary)',
+        display: 'flex',
+        alignItems: 'center',
     },
     scoreBadge: {
         display: 'inline-block',
@@ -292,6 +354,30 @@ const styles = {
         fontWeight: '600',
         color: 'var(--text-primary)',
         marginBottom: '20px',
+    },
+    statsRow: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr',
+        gap: '16px',
+    },
+    statBox: {
+        backgroundColor: 'var(--bg-base)',
+        border: '1px solid var(--border)',
+        borderRadius: '10px',
+        padding: '20px',
+        textAlign: 'center',
+    },
+    statValue: {
+        fontSize: '28px',
+        fontWeight: '700',
+        color: 'var(--text-primary)',
+        marginBottom: '6px',
+    },
+    statLabel: {
+        fontSize: '12px',
+        color: 'var(--text-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
     },
     criteriaGrid: {
         display: 'flex',
@@ -335,6 +421,7 @@ const styles = {
         display: 'flex',
         gap: '12px',
         marginTop: '8px',
+        flexWrap: 'wrap',
     },
     primaryBtn: {
         padding: '12px 28px',

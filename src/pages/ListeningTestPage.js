@@ -43,7 +43,7 @@ function AudioPlayer({ audioUrl }) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [playCount, setPlayCount] = useState(0);
-    const MAX_PLAYS = 2; // IELTS da audio 2 martadan ko'p eshitilmaydi
+    const MAX_PLAYS = 2;
 
     const togglePlay = () => {
         if (!audioRef.current) return;
@@ -102,7 +102,6 @@ function AudioPlayer({ audioUrl }) {
             />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                {/* Play/Pause button */}
                 <button
                     onClick={togglePlay}
                     disabled={!canPlay}
@@ -115,12 +114,8 @@ function AudioPlayer({ audioUrl }) {
                     {playing ? '⏸' : '▶'}
                 </button>
 
-                {/* Progress bar */}
                 <div style={{ flex: 1 }}>
-                    <div
-                        style={progressWrap}
-                        onClick={handleSeek}
-                    >
+                    <div style={progressWrap} onClick={handleSeek}>
                         <div style={{ ...progressFill, width: `${progress}%` }} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
@@ -129,7 +124,6 @@ function AudioPlayer({ audioUrl }) {
                     </div>
                 </div>
 
-                {/* Play count */}
                 <div style={{ textAlign: 'center', minWidth: '60px' }}>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Qolgan</div>
                     <div style={{ fontSize: '16px', fontWeight: '700', color: playsLeft > 0 ? 'var(--accent)' : '#f87171' }}>
@@ -229,7 +223,6 @@ export default function ListeningTestPage() {
     const [error, setError] = useState(null);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
-    const [score, setScore] = useState(null);
     const [activePart, setActivePart] = useState(0);
 
     useEffect(() => {
@@ -249,7 +242,8 @@ export default function ListeningTestPage() {
     };
 
     const handleSubmit = () => {
-        if (!test) return;
+        if (!test || submitted) return;
+
         const questions = test.questions || [];
         let correct = 0;
         let total = 0;
@@ -278,16 +272,26 @@ export default function ListeningTestPage() {
             : percentage >= 40 ? 4.0
             : 3.0;
 
-        setScore({ correct, total, percentage, bandScore });
         setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        navigate('/tests/result', {
+            state: {
+                type: 'listening',
+                result: {
+                    band_score: bandScore,
+                    correct,
+                    total,
+                    percentage,
+                    test_title: test.title,
+                }
+            }
+        });
     };
 
     const handleTimeUp = () => {
         if (!submitted) handleSubmit();
     };
 
-    // Savollarni 4 qismga bo'lamiz (IELTS Listening: Part 1-4)
     const groupByPart = (questions) => {
         const sorted = [...questions].sort((a, b) => a.order - b.order);
         const parts = [];
@@ -315,42 +319,6 @@ export default function ListeningTestPage() {
             <div style={centerBox}>
                 <p style={{ color: '#f87171', marginBottom: '16px' }}>{error}</p>
                 <button onClick={() => navigate('/tests')} style={btnSecondary}>← Testlarga qaytish</button>
-            </div>
-        </>
-    );
-
-    // ── Natija ekrani ─────────────────────────────────────────────────────────
-    if (submitted && score) return (
-        <>
-            <Navbar />
-            <div style={page}>
-                <div style={resultCard}>
-                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>
-                        {score.bandScore >= 7 ? '🎉' : score.bandScore >= 5 ? '👍' : '📚'}
-                    </div>
-                    <h2 style={{ color: 'var(--text-primary)', marginBottom: '4px' }}>Test yakunlandi!</h2>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{test.title}</p>
-
-                    <div style={scoreGrid}>
-                        <div style={scoreItem}>
-                            <span style={scoreLabel}>To'g'ri javoblar</span>
-                            <span style={scoreValue}>{score.correct} / {score.total}</span>
-                        </div>
-                        <div style={scoreItem}>
-                            <span style={scoreLabel}>Foiz</span>
-                            <span style={scoreValue}>{score.percentage}%</span>
-                        </div>
-                        <div style={{ ...scoreItem, gridColumn: '1 / -1' }}>
-                            <span style={scoreLabel}>Band Score</span>
-                            <span style={{ ...scoreValue, fontSize: '36px', color: 'var(--accent)' }}>{score.bandScore}</span>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <button onClick={() => navigate('/tests')} style={btnSecondary}>← Testlarga qaytish</button>
-                        <button onClick={() => navigate('/statistics')} style={btnPrimary}>Statistikani ko'rish →</button>
-                    </div>
-                </div>
             </div>
         </>
     );
@@ -522,8 +490,3 @@ const footer = { display: 'flex', justifyContent: 'flex-end', alignItems: 'cente
 const btnPrimary = { padding: '10px 22px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
 const btnSecondary = { padding: '10px 22px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
 const btnSubmit = { padding: '12px 28px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
-const resultCard = { maxWidth: '480px', margin: '60px auto', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '40px', textAlign: 'center' };
-const scoreGrid = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' };
-const scoreItem = { backgroundColor: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '6px' };
-const scoreLabel = { fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' };
-const scoreValue = { fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' };

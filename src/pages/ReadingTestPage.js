@@ -107,9 +107,8 @@ export default function ReadingTestPage() {
     const [test, setTest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [answers, setAnswers] = useState({});       // { questionId: value }
+    const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
-    const [score, setScore] = useState(null);
     const [activePassage, setActivePassage] = useState(0);
 
     useEffect(() => {
@@ -129,15 +128,14 @@ export default function ReadingTestPage() {
     };
 
     const handleSubmit = () => {
-        if (!test) return;
+        if (!test || submitted) return;
 
         const questions = test.questions || [];
         let correct = 0;
         let total = 0;
 
         questions.forEach(q => {
-            if (q.question_type === 'fill_blank') return; // fill_blank server tomonida tekshiriladi
-
+            if (q.question_type === 'fill_blank') return;
             total++;
             const userAnswer = answers[q.id];
             if (!userAnswer) return;
@@ -160,16 +158,26 @@ export default function ReadingTestPage() {
             : percentage >= 40 ? 4.0
             : 3.0;
 
-        setScore({ correct, total, percentage, bandScore });
         setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        navigate('/tests/result', {
+            state: {
+                type: 'reading',
+                result: {
+                    band_score: bandScore,
+                    correct,
+                    total,
+                    percentage,
+                    test_title: test.title,
+                }
+            }
+        });
     };
 
     const handleTimeUp = () => {
         if (!submitted) handleSubmit();
     };
 
-    // Savollarni passajlarga bo'lamiz (har 13 tadan — IELTS standarti)
     const groupByPassage = (questions) => {
         const sorted = [...questions].sort((a, b) => a.order - b.order);
         const passages = [];
@@ -197,42 +205,6 @@ export default function ReadingTestPage() {
             <div style={centerBox}>
                 <p style={{ color: '#f87171', marginBottom: '16px' }}>{error}</p>
                 <button onClick={() => navigate('/tests')} style={btnSecondary}>← Testlarga qaytish</button>
-            </div>
-        </>
-    );
-
-    // ── Natija ekrani ─────────────────────────────────────────────────────────
-    if (submitted && score) return (
-        <>
-            <Navbar />
-            <div style={page}>
-                <div style={resultCard}>
-                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>
-                        {score.bandScore >= 7 ? '🎉' : score.bandScore >= 5 ? '👍' : '📚'}
-                    </div>
-                    <h2 style={{ color: 'var(--text-primary)', marginBottom: '4px' }}>Test yakunlandi!</h2>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{test.title}</p>
-
-                    <div style={scoreGrid}>
-                        <div style={scoreItem}>
-                            <span style={scoreLabel}>To'g'ri javoblar</span>
-                            <span style={scoreValue}>{score.correct} / {score.total}</span>
-                        </div>
-                        <div style={scoreItem}>
-                            <span style={scoreLabel}>Foiz</span>
-                            <span style={scoreValue}>{score.percentage}%</span>
-                        </div>
-                        <div style={{ ...scoreItem, gridColumn: '1 / -1' }}>
-                            <span style={scoreLabel}>Band Score</span>
-                            <span style={{ ...scoreValue, fontSize: '36px', color: 'var(--accent)' }}>{score.bandScore}</span>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <button onClick={() => navigate('/tests')} style={btnSecondary}>← Testlarga qaytish</button>
-                        <button onClick={() => navigate('/statistics')} style={btnPrimary}>Statistikani ko'rish →</button>
-                    </div>
-                </div>
             </div>
         </>
     );
@@ -267,7 +239,7 @@ export default function ReadingTestPage() {
                     <div style={{ ...progressBarFill, width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%` }} />
                 </div>
 
-                {/* Passage tabs (agar 1 dan ko'p bo'lsa) */}
+                {/* Passage tabs */}
                 {passages.length > 1 && (
                     <div style={tabRow}>
                         {passages.map((_, i) => (
@@ -495,43 +467,4 @@ const btnSubmit = {
     fontWeight: '700',
     cursor: 'pointer',
     fontFamily: 'Sora, sans-serif',
-};
-
-const resultCard = {
-    maxWidth: '480px',
-    margin: '60px auto',
-    backgroundColor: 'var(--bg-card)',
-    border: '1px solid var(--border)',
-    borderRadius: '16px',
-    padding: '40px',
-    textAlign: 'center',
-};
-
-const scoreGrid = {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-};
-
-const scoreItem = {
-    backgroundColor: 'var(--bg-page)',
-    border: '1px solid var(--border)',
-    borderRadius: '10px',
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-};
-
-const scoreLabel = {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-};
-
-const scoreValue = {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
 };
