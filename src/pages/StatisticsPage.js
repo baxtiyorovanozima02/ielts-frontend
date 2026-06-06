@@ -62,7 +62,12 @@ const emptyStyles = {
 };
 
 function StatisticsPage() {
-    const [history, setHistory] = useState({ writing: [], speaking: [] });
+    const [history, setHistory] = useState({
+        writing: [],
+        speaking: [],
+        reading: [],
+        listening: [],
+    });
     const [weakAreas, setWeakAreas] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,27 +76,43 @@ function StatisticsPage() {
             statisticsAPI.getHistory(),
             statisticsAPI.getWeakAreas(),
         ]).then(([histRes, weakRes]) => {
-            setHistory(histRes.data);
-            setWeakAreas(weakRes.data.weak_areas);
+            setHistory({
+                writing: histRes.data.writing || [],
+                speaking: histRes.data.speaking || [],
+                reading: histRes.data.reading || [],
+                listening: histRes.data.listening || [],
+            });
+            setWeakAreas(weakRes.data.weak_areas || []);
         }).catch(() => {}).finally(() => setLoading(false));
     }, []);
 
     const chartData = () => {
-        const maxLen = Math.max(history.writing.length, history.speaking.length);
+        const maxLen = Math.max(
+            history.writing.length,
+            history.speaking.length,
+            history.reading.length,
+            history.listening.length,
+        );
         if (maxLen === 0) return [];
         const data = [];
         for (let i = 0; i < maxLen; i++) {
             data.push({
                 name: `Test ${i + 1}`,
-                Writing: history.writing[i]?.band_score || null,
-                Speaking: history.speaking[i]?.band_score || null,
+                Writing:   history.writing[i]?.band_score   || null,
+                Speaking:  history.speaking[i]?.band_score  || null,
+                Reading:   history.reading[i]?.band_score   || null,
+                Listening: history.listening[i]?.band_score || null,
             });
         }
         return data;
     };
 
     const data = chartData();
-    const hasAnyData = history.writing.length > 0 || history.speaking.length > 0;
+    const hasAnyData =
+        history.writing.length > 0 ||
+        history.speaking.length > 0 ||
+        history.reading.length > 0 ||
+        history.listening.length > 0;
 
     if (loading) {
         return (
@@ -140,7 +161,7 @@ function StatisticsPage() {
                     </div>
                 )}
 
-                {/* Grafik */}
+                {/* Grafik — barcha 4 bo'lim */}
                 {hasAnyData && (
                     <div style={styles.chartCard}>
                         <h2 style={styles.cardTitle}>📈 Band Score tarixi</h2>
@@ -174,6 +195,7 @@ function StatisticsPage() {
                                         strokeWidth={2}
                                         dot={{ fill: '#3b82f6', r: 4 }}
                                         activeDot={{ r: 6 }}
+                                        connectNulls
                                     />
                                     <Line
                                         type="monotone"
@@ -182,6 +204,25 @@ function StatisticsPage() {
                                         strokeWidth={2}
                                         dot={{ fill: '#10b981', r: 4 }}
                                         activeDot={{ r: 6 }}
+                                        connectNulls
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Reading"
+                                        stroke="#6366f1"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#6366f1', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                        connectNulls
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Listening"
+                                        stroke="#f59e0b"
+                                        strokeWidth={2}
+                                        dot={{ fill: '#f59e0b', r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                        connectNulls
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
@@ -192,6 +233,26 @@ function StatisticsPage() {
                                 desc="Testlarni topshirgach grafik shu yerda ko'rinadi"
                             />
                         )}
+
+                        {/* Rang izoh */}
+                        <div style={styles.legendRow}>
+                            <div style={styles.legendItem}>
+                                <div style={{ ...styles.legendDot, backgroundColor: '#3b82f6' }} />
+                                <span>Writing</span>
+                            </div>
+                            <div style={styles.legendItem}>
+                                <div style={{ ...styles.legendDot, backgroundColor: '#10b981' }} />
+                                <span>Speaking</span>
+                            </div>
+                            <div style={styles.legendItem}>
+                                <div style={{ ...styles.legendDot, backgroundColor: '#6366f1' }} />
+                                <span>Reading</span>
+                            </div>
+                            <div style={styles.legendItem}>
+                                <div style={{ ...styles.legendDot, backgroundColor: '#f59e0b' }} />
+                                <span>Listening</span>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -208,14 +269,16 @@ function StatisticsPage() {
                         />
                     ) : (
                         history.writing.map((r, i) => (
-                            <div key={i} style={styles.historyCard}>
+                            <div key={i} style={{ ...styles.historyCard, borderLeft: '3px solid #3b82f6' }}>
                                 <div style={styles.historyLeft}>
                                     <div style={styles.historyTestName}>{r.test__title}</div>
                                     <div style={styles.historyDate}>
                                         {new Date(r.created_at).toLocaleDateString('uz-UZ')}
                                     </div>
                                 </div>
-                                <div style={styles.bandBadge}>{r.band_score}</div>
+                                <div style={{ ...styles.bandBadge, backgroundColor: 'rgba(59,130,246,0.15)', color: '#3b82f6' }}>
+                                    {r.band_score}
+                                </div>
                             </div>
                         ))
                     )}
@@ -234,14 +297,70 @@ function StatisticsPage() {
                         />
                     ) : (
                         history.speaking.map((r, i) => (
-                            <div key={i} style={{ ...styles.historyCard, ...styles.historyCardGreen }}>
+                            <div key={i} style={{ ...styles.historyCard, borderLeft: '3px solid #10b981' }}>
                                 <div style={styles.historyLeft}>
                                     <div style={styles.historyTestName}>{r.test__title}</div>
                                     <div style={styles.historyDate}>
                                         {new Date(r.created_at).toLocaleDateString('uz-UZ')}
                                     </div>
                                 </div>
-                                <div style={{ ...styles.bandBadge, ...styles.bandBadgeGreen }}>
+                                <div style={{ ...styles.bandBadge, backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                                    {r.band_score}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Reading tarixi */}
+                <div style={styles.section}>
+                    <h2 style={styles.sectionTitle}>📖 Reading tarixi</h2>
+                    {history.reading.length === 0 ? (
+                        <EmptyState
+                            icon="📖"
+                            title="Reading testlari yo'q"
+                            desc="Hali birorta reading testi topshirmagansiz"
+                            btnText="Reading testini boshlash →"
+                            btnHref="/tests"
+                        />
+                    ) : (
+                        history.reading.map((r, i) => (
+                            <div key={i} style={{ ...styles.historyCard, borderLeft: '3px solid #6366f1' }}>
+                                <div style={styles.historyLeft}>
+                                    <div style={styles.historyTestName}>{r.test__title || 'Reading testi'}</div>
+                                    <div style={styles.historyDate}>
+                                        {r.created_at ? new Date(r.created_at).toLocaleDateString('uz-UZ') : ''}
+                                    </div>
+                                </div>
+                                <div style={{ ...styles.bandBadge, backgroundColor: 'rgba(99,102,241,0.15)', color: '#6366f1' }}>
+                                    {r.band_score}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Listening tarixi */}
+                <div style={styles.section}>
+                    <h2 style={styles.sectionTitle}>🎧 Listening tarixi</h2>
+                    {history.listening.length === 0 ? (
+                        <EmptyState
+                            icon="🎧"
+                            title="Listening testlari yo'q"
+                            desc="Hali birorta listening testi topshirmagansiz"
+                            btnText="Listening testini boshlash →"
+                            btnHref="/tests"
+                        />
+                    ) : (
+                        history.listening.map((r, i) => (
+                            <div key={i} style={{ ...styles.historyCard, borderLeft: '3px solid #f59e0b' }}>
+                                <div style={styles.historyLeft}>
+                                    <div style={styles.historyTestName}>{r.test__title || 'Listening testi'}</div>
+                                    <div style={styles.historyDate}>
+                                        {r.created_at ? new Date(r.created_at).toLocaleDateString('uz-UZ') : ''}
+                                    </div>
+                                </div>
+                                <div style={{ ...styles.bandBadge, backgroundColor: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
                                     {r.band_score}
                                 </div>
                             </div>
@@ -330,6 +449,27 @@ const styles = {
         color: 'var(--text-primary)',
         marginBottom: '24px',
     },
+    legendRow: {
+        display: 'flex',
+        gap: '20px',
+        flexWrap: 'wrap',
+        marginTop: '16px',
+        paddingTop: '16px',
+        borderTop: '1px solid var(--border)',
+    },
+    legendItem: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '13px',
+        color: 'var(--text-muted)',
+    },
+    legendDot: {
+        width: '10px',
+        height: '10px',
+        borderRadius: '50%',
+        flexShrink: 0,
+    },
     section: {
         marginBottom: '40px',
     },
@@ -344,16 +484,12 @@ const styles = {
     historyCard: {
         backgroundColor: 'var(--bg-card)',
         border: '1px solid var(--border)',
-        borderLeft: '3px solid var(--accent)',
         borderRadius: 'var(--radius)',
         padding: '16px 20px',
         marginBottom: '10px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-    },
-    historyCardGreen: {
-        borderLeft: '3px solid var(--accent-green)',
     },
     historyLeft: {
         display: 'flex',
@@ -370,18 +506,12 @@ const styles = {
         color: 'var(--text-muted)',
     },
     bandBadge: {
-        backgroundColor: 'rgba(59, 130, 246, 0.15)',
-        color: 'var(--accent)',
         fontWeight: '700',
         fontSize: '18px',
         padding: '8px 16px',
         borderRadius: '8px',
         minWidth: '52px',
         textAlign: 'center',
-    },
-    bandBadgeGreen: {
-        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-        color: 'var(--accent-green)',
     },
 };
 
