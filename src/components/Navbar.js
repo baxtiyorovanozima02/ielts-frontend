@@ -29,8 +29,16 @@ function Navbar() {
     return (
         <>
             <nav style={styles.navbar}>
-                <a href="/dashboard" style={styles.logo}>
-                    SelfStudy<span style={styles.logoAccent}>.uz</span>
+                <a href="/dashboard" style={styles.logoWrap}>
+                    <img
+                        src="/logo.jpg"
+                        alt="SelfStudy.uz"
+                        style={styles.logoImg}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                    <span style={styles.logoText}>
+                        SelfStudy<span style={styles.logoAccent}>.uz</span>
+                    </span>
                 </a>
 
                 <div style={styles.links} className="navbar-links">
@@ -82,13 +90,8 @@ function Navbar() {
             {mobileOpen && (
                 <div style={styles.mobileMenu}>
                     {links.map(l => (
-                        <a
-                            key={l.href}
-                            href={l.href}
-                            style={styles.mobileLink}
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            {l.label}
+                            <a key={l.href} href={l.href} style={styles.mobileLink} onClick={() => setMobileOpen(false)}>                            href={l.href}
+                          {l.label}
                         </a>
                     ))}
                     <hr style={styles.divider} />
@@ -114,12 +117,23 @@ const styles = {
         top: 0,
         zIndex: 100,
     },
-    logo: {
+    logoWrap: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        textDecoration: 'none',
+        flexShrink: 0,
+    },
+    logoImg: {
+        height: '36px',
+        width: 'auto',
+        objectFit: 'contain',
+        borderRadius: '6px',
+    },
+    logoText: {
         fontSize: '22px',
         fontWeight: '700',
         color: 'var(--text-primary)',
-        textDecoration: 'none',
-        flexShrink: 0,
     },
     logoAccent: {
         color: 'var(--accent)',
@@ -127,7 +141,6 @@ const styles = {
     links: {
         display: 'flex',
         gap: '8px',
-
     },
     link: {
         color: 'var(--text-secondary)',
