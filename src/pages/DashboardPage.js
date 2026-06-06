@@ -144,29 +144,68 @@ function DashboardPage() {
                 <div style={styles.statsGrid}>
                     {overall ? (
                         <>
+                            {/* Writing */}
                             <div style={styles.statCard}>
                                 <div style={styles.statIcon}>✍️</div>
                                 <div style={styles.statLabel}>Writing</div>
                                 <div style={styles.statScore}>
-                                    {overall.writing.average_band_score ?? '—'}
+                                    {overall.writing?.average_band_score ?? '—'}
                                 </div>
                                 <div style={styles.statSub}>
-                                    {overall.writing.total_tests} ta test
+                                    {overall.writing?.total_tests ?? 0} ta test
                                 </div>
                             </div>
+
+                            {/* Speaking */}
                             <div style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)' }}>
                                 <div style={styles.statIcon}>🎤</div>
                                 <div style={styles.statLabel}>Speaking</div>
                                 <div style={styles.statScore}>
-                                    {overall.speaking.average_band_score ?? '—'}
+                                    {overall.speaking?.average_band_score ?? '—'}
                                 </div>
                                 <div style={styles.statSub}>
-                                    {overall.speaking.total_tests} ta test
+                                    {overall.speaking?.total_tests ?? 0} ta test
+                                </div>
+                            </div>
+
+                            {/* Reading */}
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #3b82f6' }}>
+                                <div style={styles.statIcon}>📖</div>
+                                <div style={styles.statLabel}>Reading</div>
+                                <div style={styles.statScore}>
+                                    {overall.reading?.average_band_score ?? '—'}
+                                </div>
+                                <div style={styles.statSub}>
+                                    {overall.reading?.total_tests ?? 0} ta test
+                                </div>
+                            </div>
+
+                            {/* Listening */}
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #f59e0b' }}>
+                                <div style={styles.statIcon}>🎧</div>
+                                <div style={styles.statLabel}>Listening</div>
+                                <div style={styles.statScore}>
+                                    {overall.listening?.average_band_score ?? '—'}
+                                </div>
+                                <div style={styles.statSub}>
+                                    {overall.listening?.total_tests ?? 0} ta test
                                 </div>
                             </div>
                         </>
                     ) : (
                         <>
+                            <div style={styles.statCard}>
+                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
+                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
+                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
+                                <Skeleton height="12px" width="100px" />
+                            </div>
+                            <div style={styles.statCard}>
+                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
+                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
+                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
+                                <Skeleton height="12px" width="100px" />
+                            </div>
                             <div style={styles.statCard}>
                                 <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
                                 <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
