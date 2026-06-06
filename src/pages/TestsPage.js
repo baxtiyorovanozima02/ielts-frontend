@@ -36,11 +36,33 @@ function TestsPage() {
         listening: '🎧',
     };
 
+    // section ID yoki name bo'lishi mumkin — ikkalasini ham tekshiramiz
+    const getSectionName = (test) => {
+        // Agar section object bo'lsa
+        if (test.section && typeof test.section === 'object') {
+            return test.section.name;
+        }
+        // Agar section ID (raqam) bo'lsa — sections listidan topamiz
+        if (typeof test.section === 'number') {
+            const found = sections.find(s => s.id === test.section);
+            return found ? found.name : '';
+        }
+        // Agar to'g'ridan-to'g'ri string bo'lsa
+        return test.section || '';
+    };
+
     const handleStart = (test) => {
-        if (test.section === 'writing') {
+        const sectionName = getSectionName(test);
+        console.log('section name:', sectionName, '| raw:', test.section);
+
+        if (sectionName === 'writing') {
             navigate(`/tests/writing/${test.id}`);
-        } else if (test.section === 'speaking') {
+        } else if (sectionName === 'speaking') {
             navigate(`/tests/speaking/${test.id}`);
+        } else if (sectionName === 'reading') {
+            navigate(`/tests/reading/${test.id}`);
+        } else if (sectionName === 'listening') {
+            navigate(`/tests/listening/${test.id}`);
         } else {
             alert("Bu bo'lim tez orada qo'shiladi!");
         }
@@ -84,7 +106,7 @@ function TestsPage() {
                             <div key={test.id} style={styles.testCard}>
                                 <div style={styles.testCardTop}>
                                     <div style={styles.testIcon}>
-                                        {sectionIcons[test.section] || '📝'}
+                                        {sectionIcons[getSectionName(test)] || '📝'}
                                     </div>
                                     <div style={styles.testDifficulty}>
                                         {test.difficulty || 'Medium'}
@@ -95,7 +117,7 @@ function TestsPage() {
                                     {test.description || "Test topshiriq va savollardan iborat"}
                                 </div>
                                 <div style={styles.testMeta}>
-                                    <span>⏱ {test.duration || 60} daqiqa</span>
+                                    <span>⏱ {test.duration_minutes || test.duration || 60} daqiqa</span>
                                 </div>
                                 <button
                                     onClick={() => handleStart(test)}

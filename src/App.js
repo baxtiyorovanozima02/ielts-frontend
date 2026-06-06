@@ -11,6 +11,7 @@ import LandingPage from './pages/LandingPage';
 import PricingPage from './pages/PricingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TestsPage from './pages/TestsPage';
+import ReadingTestPage from './pages/ReadingTestPage';
 import WritingTestPage from './pages/WritingTestPage';
 import SpeakingTestPage from './pages/SpeakingTestPage';
 import TestResultPage from './pages/TestResultPage';
@@ -33,6 +34,7 @@ function App() {
                     <Route path="/profile" element={<PrivateRoute><ErrorBoundary><ProfilePage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/settings" element={<PrivateRoute><ErrorBoundary><SettingsPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/tests" element={<PrivateRoute><ErrorBoundary><TestsPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/tests/reading/:id" element={<PrivateRoute><ErrorBoundary><ReadingTestPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/tests/writing/:id" element={<PrivateRoute><ErrorBoundary><WritingTestPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/tests/speaking/:id" element={<PrivateRoute><ErrorBoundary><SpeakingTestPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/tests/result" element={<PrivateRoute><ErrorBoundary><TestResultPage /></ErrorBoundary></PrivateRoute>} />
