@@ -1,412 +1,411 @@
 import { useState, useEffect } from 'react';
-import { vocabularyAPI } from '../services/api';
 import Navbar from '../components/Navbar';
+import Skeleton from '../components/Skeleton';
+import { vocabularyAPI } from '../services/api';
 
-function FlashCard({ word, onNext, onPrev, current, total }) {
+// ─── Flashcard komponenti ─────────────────────────────────────────────────────
+function Flashcard({ wordObj, onRate, onSkip, current, total }) {
     const [flipped, setFlipped] = useState(false);
 
-    useEffect(() => {
-        setFlipped(false);
-    }, [word]);
+    const qualityLabels = [
+        { q: 0, label: "Bilmadim", color: '#ef4444', emoji: '😞' },
+        { q: 1, label: "Qiyin",    color: '#f59e0b', emoji: '😐' },
+        { q: 2, label: "Esladim",  color: '#3b82f6', emoji: '🙂' },
+        { q: 3, label: "Oson!",    color: '#10b981', emoji: '😊' },
+    ];
+
+    // Yangi karta kelganda flip ni reset qilamiz
+    useEffect(() => { setFlipped(false); }, [wordObj?.id]);
 
     return (
-        <div style={styles.flashcardWrapper}>
-            <div style={styles.flashcardCounter}>{current + 1} / {total}</div>
-            <div
-                style={{ ...styles.flashcard, ...(flipped ? styles.flashcardFlipped : {}) }}
-                onClick={() => setFlipped(!flipped)}
-            >
+        <div style={flashcardWrap}>
+            {/* Progress */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '480px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{current} / {total}</span>
+                <div style={miniProgressWrap}>
+                    <div style={{ ...miniProgressFill, width: `${((current - 1) / total) * 100}%` }} />
+                </div>
+            </div>
+
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', textAlign: 'center' }}>
+                {flipped ? 'Qanchalik yaxshi bildingiz?' : 'Kartani bosing — tarjimani ko\'ring'}
+            </div>
+
+            {/* Karta */}
+            <div onClick={() => setFlipped(!flipped)} style={flashcard}>
                 {!flipped ? (
-                    <div style={styles.flashcardFront}>
-                        <div style={styles.flashcardHint}>So'z</div>
-                        <div style={styles.flashcardWord}>{word.word}</div>
-                        {word.example && <div style={styles.flashcardExample}>"{word.example}"</div>}
-                        <div style={styles.flashcardTap}>👆 Tarjimani ko'rish uchun bosing</div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                            {wordObj.word}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>bosing →</div>
                     </div>
                 ) : (
-                    <div style={styles.flashcardBack}>
-                        <div style={styles.flashcardHint}>Tarjima</div>
-                        <div style={styles.flashcardTranslation}>{word.translation}</div>
-                        <div style={styles.flashcardWordSmall}>{word.word}</div>
-                        <div style={styles.flashcardTap}>✅ Bildingizmi?</div>
-                    </div>
-                )}
-            </div>
-            <div style={styles.flashcardBtns}>
-                <button onClick={onPrev} style={styles.navBtn}>← Oldingi</button>
-                <button onClick={onNext} style={styles.navBtn}>Keyingi →</button>
-            </div>
-        </div>
-    );
-}
-
-function ReviewMode({ onFinish }) {
-    const [dueWords, setDueWords] = useState([]);
-    const [current, setCurrent] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-    const [flipped, setFlipped] = useState(false);
-    const [results, setResults] = useState({ known: 0, unknown: 0 });
-    const [done, setDone] = useState(false);
-
-    useEffect(() => {
-        vocabularyAPI.getDueWords()
-            .then(res => setDueWords(res.data))
-            .catch(() => {})
-            .finally(() => setLoading(false));
-    }, []);
-
-    const handleReview = async (quality) => {
-        if (submitting) return;
-        setSubmitting(true);
-        const word = dueWords[current];
-        try {
-            await vocabularyAPI.reviewWord({ word_id: word.id, quality });
-        } catch {}
-
-        if (quality >= 3) {
-            setResults(r => ({ ...r, known: r.known + 1 }));
-        } else {
-            setResults(r => ({ ...r, unknown: r.unknown + 1 }));
-        }
-
-        if (current + 1 >= dueWords.length) {
-            setDone(true);
-        } else {
-            setCurrent(i => i + 1);
-            setFlipped(false);
-        }
-        setSubmitting(false);
-    };
-
-    if (loading) return (
-        <div style={styles.reviewEmpty}>Yuklanmoqda...</div>
-    );
-
-    if (dueWords.length === 0) return (
-        <div style={styles.reviewEmpty}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                Barakallo!
-            </div>
-            <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                Bugun takrorlanadigan so'z yo'q. Ertaga qaytib keling!
-            </div>
-        </div>
-    );
-
-    if (done) return (
-        <div style={styles.reviewEmpty}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-            <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '16px' }}>
-                Takrorlash tugadi!
-            </div>
-            <div style={styles.reviewResults}>
-                <div style={styles.reviewResultItem}>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#10b981' }}>{results.known}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Bildim ✅</div>
-                </div>
-                <div style={styles.reviewResultItem}>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: '#ef4444' }}>{results.unknown}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Bilmadim ❌</div>
-                </div>
-            </div>
-            <button onClick={onFinish} style={styles.finishBtn}>
-                Ro'yxatga qaytish
-            </button>
-        </div>
-    );
-
-    const word = dueWords[current];
-
-    return (
-        <div style={styles.reviewWrapper}>
-            <div style={styles.reviewProgress}>
-                <div style={styles.reviewProgressBar}>
-                    <div style={{
-                        ...styles.reviewProgressFill,
-                        width: `${(current / dueWords.length) * 100}%`
-                    }} />
-                </div>
-                <div style={styles.reviewProgressText}>
-                    {current + 1} / {dueWords.length}
-                </div>
-            </div>
-
-            <div
-                style={{ ...styles.flashcard, ...(flipped ? styles.flashcardFlipped : {}) }}
-                onClick={() => setFlipped(!flipped)}
-            >
-                {!flipped ? (
-                    <div style={styles.flashcardFront}>
-                        <div style={styles.flashcardHint}>So'z</div>
-                        <div style={styles.flashcardWord}>{word.word}</div>
-                        {word.example && <div style={styles.flashcardExample}>"{word.example}"</div>}
-                        <div style={styles.flashcardTap}>👆 Tarjimani ko'rish uchun bosing</div>
-                    </div>
-                ) : (
-                    <div style={styles.flashcardBack}>
-                        <div style={styles.flashcardHint}>Tarjima</div>
-                        <div style={styles.flashcardTranslation}>{word.translation}</div>
-                        <div style={styles.flashcardWordSmall}>{word.word}</div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tarjima</div>
+                        <div style={{ fontSize: '26px', fontWeight: '700', color: 'var(--accent)', marginBottom: '12px' }}>
+                            {wordObj.translation}
+                        </div>
+                        {wordObj.example && (
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                                "{wordObj.example}"
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
+            {/* Baholash tugmalari — faqat flip bo'lganda */}
             {flipped && (
-                <div style={styles.reviewBtns}>
-                    <button
-                        onClick={() => handleReview(1)}
-                        style={styles.unknownBtn}
-                        disabled={submitting}
-                    >
-                        ❌ Bilmadim
-                    </button>
-                    <button
-                        onClick={() => handleReview(3)}
-                        style={styles.hardBtn}
-                        disabled={submitting}
-                    >
-                        😅 Qiyin
-                    </button>
-                    <button
-                        onClick={() => handleReview(5)}
-                        style={styles.knownBtn}
-                        disabled={submitting}
-                    >
-                        ✅ Bildim
-                    </button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {qualityLabels.map(({ q, label, color, emoji }) => (
+                        <button
+                            key={q}
+                            onClick={() => onRate(wordObj, q)}
+                            style={{ ...rateBtn, borderColor: color, color }}
+                        >
+                            {emoji} {label}
+                        </button>
+                    ))}
                 </div>
             )}
 
-            {!flipped && (
-                <div style={styles.reviewHint}>
-                    Avval tarjimani ko'ring, keyin baholang
-                </div>
-            )}
+            <button onClick={onSkip} style={skipBtn}>O'tkazib yuborish →</button>
         </div>
     );
 }
 
-function VocabularyPage() {
-    const [words, setWords] = useState([]);
-    const [newWord, setNewWord] = useState({ word: '', translation: '', example: '' });
-    const [error, setError] = useState('');
+// ─── So'z qo'shish modali ─────────────────────────────────────────────────────
+function AddWordModal({ onClose, onAdd }) {
+    const [form, setForm] = useState({ word: '', translation: '', example: '' });
     const [loading, setLoading] = useState(false);
-    const [mode, setMode] = useState('list');
-    const [cardIndex, setCardIndex] = useState(0);
+    const [error, setError] = useState('');
 
-    useEffect(() => {
-        vocabularyAPI.getWords().then(res => setWords(res.data)).catch(() => {});
-    }, []);
-
-    const handleAdd = async () => {
-        if (!newWord.word || !newWord.translation) {
-            setError("So'z va tarjima majburiy");
+    const handleSubmit = async () => {
+        if (!form.word.trim() || !form.translation.trim()) {
+            setError("So'z va tarjima majburiy!");
             return;
         }
         setLoading(true);
         try {
-            const res = await vocabularyAPI.addWord(newWord);
-            setWords([res.data, ...words]);
-            setNewWord({ word: '', translation: '', example: '' });
-            setError('');
+            const res = await vocabularyAPI.addWord(form);
+            onAdd(res.data);
+            onClose();
         } catch {
-            setError('Xatolik yuz berdi');
+            setError("Xatolik yuz berdi. Qaytadan urinib ko'ring.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        await vocabularyAPI.deleteWord(id);
-        setWords(words.filter(w => w.id !== id));
-    };
-
-    const handleNext = () => setCardIndex(i => (i + 1) % words.length);
-    const handlePrev = () => setCardIndex(i => (i - 1 + words.length) % words.length);
-
     return (
-        <div style={styles.page}>
-            <Navbar />
-            <main style={styles.main}>
-
-                <div style={styles.pageHeader}>
-                    <h1 style={styles.pageTitle}>📚 Lug'at</h1>
-                    <span style={styles.wordCount}>{words.length} ta so'z</span>
+        <div style={modalOverlay} onClick={onClose}>
+            <div style={modalBox} onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>➕ Yangi so'z</h3>
+                    <button onClick={onClose} style={closeBtn}>✕</button>
                 </div>
-
-                {/* Mode tabs */}
-                <div style={styles.tabs}>
-                    <button
-                        onClick={() => setMode('list')}
-                        style={{ ...styles.tab, ...(mode === 'list' ? styles.tabActive : {}) }}
-                    >
-                        📋 Ro'yxat
-                    </button>
-                    <button
-                        onClick={() => { setMode('flashcard'); setCardIndex(0); }}
-                        style={{ ...styles.tab, ...(mode === 'flashcard' ? styles.tabActive : {}) }}
-                        disabled={words.length === 0}
-                    >
-                        🃏 Flashcard
-                    </button>
-                    <button
-                        onClick={() => setMode('review')}
-                        style={{ ...styles.tab, ...(mode === 'review' ? styles.tabActive : {}) }}
-                    >
-                        🔁 Takrorlash
+                {error && <div style={errorBox}>{error}</div>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                        <label style={inputLabel}>So'z (inglizcha) *</label>
+                        <input style={inputStyle} placeholder="e.g. perseverance" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
+                    </div>
+                    <div>
+                        <label style={inputLabel}>Tarjima *</label>
+                        <input style={inputStyle} placeholder="e.g. qat'iyat" value={form.translation} onChange={e => setForm({ ...form, translation: e.target.value })} />
+                    </div>
+                    <div>
+                        <label style={inputLabel}>Misol jumla (ixtiyoriy)</label>
+                        <textarea style={{ ...inputStyle, height: '72px', resize: 'vertical' }} placeholder="e.g. Perseverance is the key to success." value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} />
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+                    <button onClick={onClose} style={btnSecondary}>Bekor qilish</button>
+                    <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
+                        {loading ? 'Saqlanmoqda...' : 'Saqlash'}
                     </button>
                 </div>
-
-                {/* Flashcard mode */}
-                {mode === 'flashcard' && words.length > 0 && (
-                    <FlashCard
-                        word={words[cardIndex]}
-                        onNext={handleNext}
-                        onPrev={handlePrev}
-                        current={cardIndex}
-                        total={words.length}
-                    />
-                )}
-
-                {/* Review mode */}
-                {mode === 'review' && (
-                    <ReviewMode onFinish={() => setMode('list')} />
-                )}
-
-                {/* List mode */}
-                {mode === 'list' && (
-                    <>
-                        <div style={styles.formCard}>
-                            <h2 style={styles.formTitle}>Yangi so'z qo'shish</h2>
-                            {error && <div style={styles.error}>{error}</div>}
-                            <div style={styles.formGrid}>
-                                <div style={styles.field}>
-                                    <label style={styles.label}>So'z</label>
-                                    <input
-                                        placeholder="masalan: abundant"
-                                        value={newWord.word}
-                                        onChange={e => setNewWord({ ...newWord, word: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.field}>
-                                    <label style={styles.label}>Tarjima</label>
-                                    <input
-                                        placeholder="masalan: ko'p, mo'l"
-                                        value={newWord.translation}
-                                        onChange={e => setNewWord({ ...newWord, translation: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                            </div>
-                            <div style={styles.field}>
-                                <label style={styles.label}>Misol jumla (ixtiyoriy)</label>
-                                <input
-                                    placeholder="masalan: There is abundant water in this region."
-                                    value={newWord.example}
-                                    onChange={e => setNewWord({ ...newWord, example: e.target.value })}
-                                    style={styles.input}
-                                />
-                            </div>
-                            <button
-                                onClick={handleAdd}
-                                disabled={loading}
-                                style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
-                            >
-                                {loading ? "Qo'shilmoqda..." : "+ Qo'shish"}
-                            </button>
-                        </div>
-
-                        {words.length === 0 ? (
-                            <div style={styles.empty}>
-                                Hali so'z qo'shilmagan. Yuqoridan boshlang! 👆
-                            </div>
-                        ) : (
-                            words.map(w => (
-                                <div key={w.id} style={styles.wordCard}>
-                                    <div style={styles.wordLeft}>
-                                        <div style={styles.wordRow}>
-                                            <span style={styles.wordText}>{w.word}</span>
-                                            <span style={styles.wordDash}>—</span>
-                                            <span style={styles.wordTranslation}>{w.translation}</span>
-                                        </div>
-                                        {w.example && (
-                                            <div style={styles.wordExample}>"{w.example}"</div>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => handleDelete(w.id)}
-                                        style={styles.deleteBtn}
-                                    >
-                                        🗑
-                                    </button>
-                                </div>
-                            ))
-                        )}
-                    </>
-                )}
-
-            </main>
+            </div>
         </div>
     );
 }
 
-const styles = {
-    page: { minHeight: '100vh', backgroundColor: 'var(--bg-base)' },
-    main: { maxWidth: '800px', margin: '0 auto', padding: '40px 24px' },
-    pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' },
-    pageTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)' },
-    wordCount: { fontSize: '13px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', padding: '4px 12px', borderRadius: '20px' },
-    tabs: { display: 'flex', gap: '10px', marginBottom: '32px' },
-    tab: { padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Sora, sans-serif', transition: 'all 0.2s' },
-    tabActive: { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', color: 'white' },
-    reviewWrapper: { display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '40px' },
-    reviewProgress: { display: 'flex', alignItems: 'center', gap: '16px' },
-    reviewProgressBar: { flex: 1, height: '6px', backgroundColor: 'var(--border)', borderRadius: '3px', overflow: 'hidden' },
-    reviewProgressFill: { height: '100%', backgroundColor: 'var(--accent)', borderRadius: '3px', transition: 'width 0.4s ease' },
-    reviewProgressText: { fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500', minWidth: '48px', textAlign: 'right' },
-    reviewBtns: { display: 'flex', gap: '12px' },
-    unknownBtn: { flex: 1, padding: '14px', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#f87171', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    hardBtn: { flex: 1, padding: '14px', backgroundColor: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '10px', color: '#fbbf24', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    knownBtn: { flex: 1, padding: '14px', backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', color: '#34d399', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    reviewHint: { textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' },
-    reviewEmpty: { textAlign: 'center', padding: '60px 24px', color: 'var(--text-muted)', fontSize: '14px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' },
-    reviewResults: { display: 'flex', gap: '32px', justifyContent: 'center', margin: '16px 0' },
-    reviewResultItem: { textAlign: 'center' },
-    finishBtn: { padding: '12px 32px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    flashcardWrapper: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', padding: '20px 0 40px' },
-    flashcardCounter: { fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' },
-    flashcard: { width: '100%', minHeight: '280px', backgroundColor: 'var(--bg-card)', border: '2px solid var(--border)', borderRadius: '20px', padding: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.3s, transform 0.15s', userSelect: 'none' },
-    flashcardFlipped: { borderColor: 'var(--accent)', transform: 'scale(1.01)' },
-    flashcardFront: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' },
-    flashcardBack: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' },
-    flashcardHint: { fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' },
-    flashcardWord: { fontSize: '48px', fontWeight: '800', color: 'var(--text-primary)' },
-    flashcardTranslation: { fontSize: '42px', fontWeight: '800', color: 'var(--accent)' },
-    flashcardWordSmall: { fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' },
-    flashcardExample: { fontSize: '14px', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '500px' },
-    flashcardTap: { fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' },
-    flashcardBtns: { display: 'flex', gap: '16px' },
-    navBtn: { padding: '12px 32px', borderRadius: '10px', border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: '15px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    formCard: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '28px', marginBottom: '32px' },
-    formTitle: { fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '20px' },
-    formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
-    error: { backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', padding: '12px', borderRadius: '8px', fontSize: '14px', marginBottom: '16px' },
-    field: { marginBottom: '16px' },
-    label: { display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '8px' },
-    input: { width: '100%', padding: '11px 16px', backgroundColor: '#111827', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', fontFamily: 'Sora, sans-serif' },
-    button: { padding: '11px 24px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
-    empty: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' },
-    wordCard: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    wordLeft: { display: 'flex', flexDirection: 'column', gap: '6px' },
-    wordRow: { display: 'flex', alignItems: 'center', gap: '8px' },
-    wordText: { fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' },
-    wordDash: { color: 'var(--text-muted)' },
-    wordTranslation: { fontSize: '15px', color: 'var(--accent)' },
-    wordExample: { fontSize: '13px', color: 'var(--text-muted)', fontStyle: 'italic' },
-    deleteBtn: { background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', fontSize: '16px' },
-};
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export default function VocabularyPage() {
+    const [words, setWords] = useState([]);
+    const [dueReviews, setDueReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [tab, setTab] = useState('words');
+    const [showModal, setShowModal] = useState(false);
+    const [search, setSearch] = useState('');
+    const [reviewMode, setReviewMode] = useState('due'); // 'due' | 'all'
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [reviewDone, setReviewDone] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
+    const [toast, setToast] = useState('');
 
-export default VocabularyPage;
+    useEffect(() => { loadData(); }, []);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [wordsRes, dueRes] = await Promise.all([
+                vocabularyAPI.getWords(),
+                vocabularyAPI.getDueWords(),
+            ]);
+            setWords(wordsRes.data);
+            setDueReviews(dueRes.data);
+        } catch {}
+        finally { setLoading(false); }
+    };
+
+    const handleAddWord = (newWord) => {
+        setWords(prev => [newWord, ...prev]);
+        showToast("✅ So'z qo'shildi!");
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Bu so'zni o'chirishni istaysizmi?")) return;
+        setDeletingId(id);
+        try {
+            await vocabularyAPI.deleteWord(id);
+            setWords(prev => prev.filter(w => w.id !== id));
+            showToast("🗑️ So'z o'chirildi");
+        } catch { showToast("❌ Xatolik yuz berdi"); }
+        finally { setDeletingId(null); }
+    };
+
+    const handleRate = async (word, quality) => {
+        try { await vocabularyAPI.reviewWord({ word_id: word.id, quality }); } catch {}
+        goNext();
+    };
+
+    const handleSkip = () => goNext();
+
+    const goNext = () => {
+        const list = reviewMode === 'due'
+            ? dueReviews.map(r => ({ id: r.word, word: r.word_text, translation: r.translation }))
+            : words;
+        if (currentIndex + 1 >= list.length) {
+            setReviewDone(true);
+        } else {
+            setCurrentIndex(prev => prev + 1);
+        }
+    };
+
+    const startReview = (mode) => {
+        setReviewMode(mode);
+        setCurrentIndex(0);
+        setReviewDone(false);
+    };
+
+    const resetReview = () => {
+        setCurrentIndex(0);
+        setReviewDone(false);
+        loadData();
+    };
+
+    const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(''), 2500);
+    };
+
+    const filteredWords = words.filter(w =>
+        w.word.toLowerCase().includes(search.toLowerCase()) ||
+        w.translation.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Joriy karta
+    const reviewList = reviewMode === 'due'
+        ? dueReviews.map(r => ({ id: r.word, word: r.word_text, translation: r.translation }))
+        : words;
+    const currentWord = reviewList[currentIndex];
+
+    return (
+        <div style={page}>
+            <Navbar />
+            {toast && <div style={toastStyle}>{toast}</div>}
+
+            <main style={main}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                        <h1 style={pageTitle}>📚 Lug'at</h1>
+                        <p style={pageSub}>{words.length} ta so'z saqlangan</p>
+                    </div>
+                    <button onClick={() => setShowModal(true)} style={btnPrimary}>➕ So'z qo'shish</button>
+                </div>
+
+                {/* Tabs */}
+                <div style={tabRow}>
+                    <button onClick={() => setTab('words')} style={{ ...tabBtn, ...(tab === 'words' ? tabActive : {}) }}>
+                        📖 Barcha so'zlar ({words.length})
+                    </button>
+                    <button onClick={() => setTab('review')} style={{ ...tabBtn, ...(tab === 'review' ? tabActive : {}) }}>
+                        🔄 Flashcard
+                        {dueReviews.length > 0 && <span style={badge}>{dueReviews.length}</span>}
+                    </button>
+                </div>
+
+                {/* ── Words tab ── */}
+                {tab === 'words' && (
+                    <>
+                        <input style={{ ...inputStyle, marginBottom: '16px' }} placeholder="🔍 So'z yoki tarjima bo'yicha qidirish..." value={search} onChange={e => setSearch(e.target.value)} />
+                        {loading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {[1,2,3,4,5].map(i => <Skeleton key={i} height="70px" />)}
+                            </div>
+                        ) : filteredWords.length === 0 ? (
+                            <div style={emptyBox}>
+                                <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
+                                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
+                                    {search ? "Topilmadi" : "Hali so'z yo'q"}
+                                </div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                    {search ? "Boshqa so'z bilan qidiring" : "\"So'z qo'shish\" tugmasini bosing"}
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {filteredWords.map(w => (
+                                    <div key={w.id} style={wordCard}>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                                                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{w.word}</span>
+                                                <span style={{ fontSize: '13px', color: 'var(--accent)' }}>— {w.translation}</span>
+                                            </div>
+                                            {w.example && (
+                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>"{w.example}"</div>
+                                            )}
+                                        </div>
+                                        <button onClick={() => handleDelete(w.id)} disabled={deletingId === w.id} style={deleteBtn} title="O'chirish">
+                                            {deletingId === w.id ? '...' : '🗑️'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* ── Flashcard tab ── */}
+                {tab === 'review' && (
+                    <>
+                        {loading ? (
+                            <Skeleton height="300px" />
+                        ) : reviewDone ? (
+                            <div style={emptyBox}>
+                                <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
+                                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
+                                    {reviewList.length} ta so'z takrorlandi!
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                    <button onClick={resetReview} style={btnSecondary}>🔄 Qaytadan</button>
+                                    <button onClick={() => { startReview('all'); }} style={btnPrimary}>📖 Hammasini takrorla</button>
+                                </div>
+                            </div>
+                        ) : currentWord ? (
+                            <Flashcard
+                                wordObj={currentWord}
+                                onRate={handleRate}
+                                onSkip={handleSkip}
+                                current={currentIndex + 1}
+                                total={reviewList.length}
+                            />
+                        ) : (
+                            /* Takrorlash uchun so'z tanlash ekrani */
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {/* Due words */}
+                                <div style={{ ...reviewOptionCard, borderColor: dueReviews.length > 0 ? 'var(--accent)' : 'var(--border)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                                🔔 Bugungi takrorlash
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                                SM-2 algoritmi bo'yicha takrorlash vaqti kelgan so'zlar
+                                            </div>
+                                        </div>
+                                        <span style={{ fontSize: '28px', fontWeight: '800', color: dueReviews.length > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
+                                            {dueReviews.length}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => startReview('due')}
+                                        disabled={dueReviews.length === 0}
+                                        style={{ ...btnPrimary, width: '100%', opacity: dueReviews.length === 0 ? 0.5 : 1, cursor: dueReviews.length === 0 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        {dueReviews.length === 0 ? 'Hozircha tayyor so\'z yo\'q' : `Boshlash (${dueReviews.length} ta)`}
+                                    </button>
+                                </div>
+
+                                {/* All words */}
+                                <div style={reviewOptionCard}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                                                📖 Barcha so'zlarni takrorlash
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                                Lug'atdagi barcha so'zlarni flashcard sifatida o'rganish
+                                            </div>
+                                        </div>
+                                        <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                                            {words.length}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => startReview('all')}
+                                        disabled={words.length === 0}
+                                        style={{ ...btnSecondary, width: '100%', opacity: words.length === 0 ? 0.5 : 1 }}
+                                    >
+                                        {words.length === 0 ? "Hali so'z yo'q" : `Hammasini takrorla (${words.length} ta)`}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </main>
+
+            {showModal && <AddWordModal onClose={() => setShowModal(false)} onAdd={handleAddWord} />}
+        </div>
+    );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
+const main = { maxWidth: '800px', margin: '0 auto', padding: '40px 24px 60px' };
+const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' };
+const pageSub = { fontSize: '14px', color: 'var(--text-secondary)' };
+
+const tabRow = { display: 'flex', gap: '8px', marginBottom: '20px' };
+const tabBtn = { padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Sora, sans-serif', display: 'flex', alignItems: 'center', gap: '6px' };
+const tabActive = { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', color: 'white' };
+const badge = { backgroundColor: '#ef4444', color: 'white', borderRadius: '20px', padding: '1px 7px', fontSize: '11px', fontWeight: '700' };
+
+const wordCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' };
+const deleteBtn = { background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px', borderRadius: '6px', flexShrink: 0 };
+const emptyBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '48px 24px', textAlign: 'center' };
+
+const reviewOptionCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' };
+
+const flashcardWrap = { display: 'flex', flexDirection: 'column', alignItems: 'center' };
+const flashcard = { backgroundColor: 'var(--bg-card)', border: '2px solid var(--accent)', borderRadius: '16px', padding: '48px 32px', width: '100%', maxWidth: '480px', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxSizing: 'border-box', boxShadow: '0 0 24px rgba(99,102,241,0.3)', transition: 'box-shadow 0.2s' };
+const rateBtn = { padding: '10px 16px', borderRadius: '8px', border: '1px solid', backgroundColor: 'transparent', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+const skipBtn = { marginTop: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+
+const miniProgressWrap = { flex: 1, height: '4px', backgroundColor: 'var(--border)', borderRadius: '4px', overflow: 'hidden', marginLeft: '12px' };
+const miniProgressFill = { height: '100%', backgroundColor: 'var(--accent)', borderRadius: '4px', transition: 'width 0.3s' };
+
+const inputStyle = { width: '100%', padding: '10px 14px', backgroundColor: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', fontFamily: 'Sora, sans-serif', boxSizing: 'border-box', outline: 'none' };
+const inputLabel = { display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' };
+
+const btnPrimary = { padding: '10px 20px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+const btnSecondary = { padding: '10px 20px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+
+const modalOverlay = { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' };
+const modalBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '440px' };
+const closeBtn = { background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer', padding: '4px' };
+const errorBox = { backgroundColor: '#7f1d1d', border: '1px solid #ef4444', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fca5a5', marginBottom: '14px' };
+const toastStyle = { position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 24px', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', zIndex: 2000, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' };

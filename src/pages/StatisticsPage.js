@@ -3,7 +3,6 @@ import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { statisticsAPI } from '../services/api';
 
-// ─── Mini Bar Chart ───────────────────────────────────────────────────────────
 function BarChart({ data, color }) {
     if (!data || data.length === 0) return (
         <div style={emptyChart}>Hali ma'lumot yo'q</div>
@@ -29,7 +28,6 @@ function BarChart({ data, color }) {
     );
 }
 
-// ─── Band Score Badge ─────────────────────────────────────────────────────────
 function BandBadge({ score }) {
     const color = score >= 7 ? '#10b981' : score >= 5.5 ? '#f59e0b' : score > 0 ? '#ef4444' : 'var(--text-muted)';
     return (
@@ -48,7 +46,7 @@ function BandBadge({ score }) {
     );
 }
 
-// ─── Section Card ─────────────────────────────────────────────────────────────
+
 function SectionCard({ icon, label, color, avg, total, chartData }) {
     return (
         <div style={{ ...sectionCard, borderTop: `3px solid ${color}` }}>
@@ -69,7 +67,7 @@ function SectionCard({ icon, label, color, avg, total, chartData }) {
     );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function StatisticsPage() {
     const [overall, setOverall] = useState(null);
     const [history, setHistory] = useState(null);
@@ -88,7 +86,6 @@ export default function StatisticsPage() {
         }).catch(() => {}).finally(() => setLoading(false));
     }, []);
 
-    // History dan chart data yasaymiz
     const makeChartData = (results) => {
         if (!results || results.length === 0) return [];
         return results.slice(-8).map((r, i) => ({
@@ -100,7 +97,6 @@ export default function StatisticsPage() {
     const writingChart = makeChartData(history?.writing);
     const speakingChart = makeChartData(history?.speaking);
 
-    // Overall band score (Writing + Speaking o'rtachasi)
     const writingAvg = overall?.writing?.average_band_score || 0;
     const speakingAvg = overall?.speaking?.average_band_score || 0;
     const overallAvg = writingAvg > 0 && speakingAvg > 0
@@ -276,7 +272,6 @@ export default function StatisticsPage() {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
 const main = { maxWidth: '900px', margin: '0 auto', padding: '40px 24px 60px' };
 const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' };
