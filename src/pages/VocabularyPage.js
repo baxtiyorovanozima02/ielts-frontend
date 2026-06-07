@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { vocabularyAPI } from '../services/api';
 
-// ─── Flashcard komponenti ─────────────────────────────────────────────────────
+
 function Flashcard({ wordObj, onRate, onSkip, current, total }) {
     const [flipped, setFlipped] = useState(false);
 
@@ -14,7 +14,6 @@ function Flashcard({ wordObj, onRate, onSkip, current, total }) {
         { q: 3, label: "Oson!",    color: '#10b981', emoji: '😊' },
     ];
 
-    // Yangi karta kelganda flip ni reset qilamiz
     useEffect(() => { setFlipped(false); }, [wordObj?.id]);
 
     return (
@@ -75,7 +74,6 @@ function Flashcard({ wordObj, onRate, onSkip, current, total }) {
     );
 }
 
-// ─── So'z qo'shish modali ─────────────────────────────────────────────────────
 function AddWordModal({ onClose, onAdd }) {
     const [form, setForm] = useState({ word: '', translation: '', example: '' });
     const [loading, setLoading] = useState(false);
@@ -131,7 +129,7 @@ function AddWordModal({ onClose, onAdd }) {
     );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function VocabularyPage() {
     const [words, setWords] = useState([]);
     const [dueReviews, setDueReviews] = useState([]);
@@ -216,7 +214,6 @@ export default function VocabularyPage() {
         w.translation.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Joriy karta
     const reviewList = reviewMode === 'due'
         ? dueReviews.map(r => ({ id: r.word, word: r.word_text, translation: r.translation }))
         : words;
@@ -313,7 +310,7 @@ export default function VocabularyPage() {
                                 total={reviewList.length}
                             />
                         ) : (
-                            /* Takrorlash uchun so'z tanlash ekrani */
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {/* Due words */}
                                 <div style={{ ...reviewOptionCard, borderColor: dueReviews.length > 0 ? 'var(--accent)' : 'var(--border)' }}>
@@ -373,7 +370,6 @@ export default function VocabularyPage() {
     );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
 const main = { maxWidth: '800px', margin: '0 auto', padding: '40px 24px 60px' };
 const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' };

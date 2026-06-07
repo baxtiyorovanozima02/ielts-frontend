@@ -9,7 +9,6 @@ const api = axios.create({
     },
 });
 
-// Request interceptor — har bir so'rovga token qo'shadi
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
@@ -21,7 +20,6 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Response interceptor — 401 bo'lsa token yangilaydi
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -70,6 +68,12 @@ export const testsAPI = {
     getTest: (id) => api.get(`/tests/tests/${id}/`),
     submitWriting: (testId, data) => api.post(`/tests/tests/${testId}/evaluate/`, data),
     submitSpeaking: (testId, data) => api.post(`/tests/tests/${testId}/speaking/`, data),
+    getWritingResults: () => api.get('/tests/results/writing/'),
+    getSpeakingResults: () => api.get('/tests/results/speaking/'),
+};
+
+export const aiAPI = {
+    getDailyPlan: () => api.get('/tests/daily-plan/'),
     getWritingResults: () => api.get('/tests/results/writing/'),
     getSpeakingResults: () => api.get('/tests/results/speaking/'),
 };
