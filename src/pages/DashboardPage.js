@@ -3,25 +3,6 @@ import { authAPI, statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 
-function getStreak() {
-    const data = JSON.parse(localStorage.getItem('streak_data') || '{}');
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-
-    if (data.lastVisit === today) return data.count || 1;
-    if (data.lastVisit === yesterday) {
-        const newCount = (data.count || 1) + 1;
-        localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: newCount }));
-        return newCount;
-    }
-    localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: 1 }));
-    return 1;
-}
-
-function getXP() {
-    return parseInt(localStorage.getItem('xp_total') || '0');
-}
-
 function getLevel(xp) {
     if (xp >= 1000) return { level: 5, title: 'Expert', color: '#8b5cf6', next: null };
     if (xp >= 500) return { level: 4, title: 'Advanced', color: '#3b82f6', next: 1000 };
@@ -30,31 +11,28 @@ function getLevel(xp) {
     return { level: 1, title: 'Beginner', color: '#ef4444', next: 50 };
 }
 
-function getDailyGoal() {
-    const saved = JSON.parse(localStorage.getItem('daily_goal') || '{}');
-    const today = new Date().toDateString();
-    if (saved.date !== today) return { done: 0, total: 3 };
-    return { done: saved.done || 0, total: 3 };
-}
-
 function DashboardPage() {
     const [user, setUser] = useState(null);
     const [overall, setOverall] = useState(null);
-    const [streak, setStreak] = useState(1);
-    const [xp, setXp] = useState(0);
-    const [dailyGoal, setDailyGoal] = useState({ done: 0, total: 3 });
 
     useEffect(() => {
+        // getMe() chaqirilganda backend streak ni avtomatik hisoblaydi
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
         statisticsAPI.getOverall().then(res => setOverall(res.data)).catch(() => {});
-        setStreak(getStreak());
-        setXp(getXP());
-        setDailyGoal(getDailyGoal());
     }, []);
+
+    const streak = user?.streak_count ?? 0;
+    const xp = user?.xp_total ?? 0;
+    const dailyGoalDone = user?.daily_goal_done ?? 0;
+    const dailyGoalTotal = 3;
+    const dailyGoalDate = user?.daily_goal_date;
+    const today = new Date().toISOString().split('T')[0];
+    // Agar daily_goal_date bugun bo'lmasa — 0 ko'rsatish
+    const dailyDone = dailyGoalDate === today ? dailyGoalDone : 0;
 
     const level = getLevel(xp);
     const xpProgress = level.next ? ((xp - [0, 50, 200, 500][level.level - 1]) / (level.next - [0, 50, 200, 500][level.level - 1])) * 100 : 100;
-    const dailyProgress = (dailyGoal.done / dailyGoal.total) * 100;
+    const dailyProgress = (dailyDone / dailyGoalTotal) * 100;
 
     return (
         <div style={styles.page}>
@@ -123,7 +101,7 @@ function DashboardPage() {
                     {/* Daily Goal */}
                     <div style={styles.gamCard}>
                         <div style={styles.gamIcon}>🎯</div>
-                        <div style={styles.gamValue}>{dailyGoal.done}/{dailyGoal.total}</div>
+                        <div style={styles.gamValue}>{dailyDone}/{dailyGoalTotal}</div>
                         <div style={styles.gamLabel}>Kunlik maqsad</div>
                         <div style={styles.progressBar}>
                             <div style={{
@@ -133,7 +111,7 @@ function DashboardPage() {
                             }} />
                         </div>
                         <div style={styles.gamSub}>
-                            {dailyProgress === 100 ? '✅ Bajarildi!' : `${dailyGoal.total - dailyGoal.done} ta qoldi`}
+                            {dailyProgress === 100 ? '✅ Bajarildi!' : `${dailyGoalTotal - dailyDone} ta qoldi`}
                         </div>
                     </div>
 

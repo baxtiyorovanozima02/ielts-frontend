@@ -60,6 +60,8 @@ export const authAPI = {
     login: (data) => api.post('/auth/jwt/create/', data),
     register: (data) => api.post('/auth/users/', data),
     getMe: () => api.get('/users/me/'),
+    addXP: (amount) => api.post('/users/xp/', { amount }),
+    completeDailyGoal: () => api.post('/users/daily-goal/'),
 };
 
 export const testsAPI = {
