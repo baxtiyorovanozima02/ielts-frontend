@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { vocabularyAPI } from '../services/api';
@@ -131,6 +132,7 @@ function AddWordModal({ onClose, onAdd }) {
 
 
 export default function VocabularyPage() {
+    const navigate = useNavigate();
     const [words, setWords] = useState([]);
     const [dueReviews, setDueReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -227,6 +229,7 @@ export default function VocabularyPage() {
             <main style={main}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
+                        <button onClick={() => navigate(-1)} style={backBtn}>← Orqaga</button>
                         <h1 style={pageTitle}>📚 Lug'at</h1>
                         <p style={pageSub}>{words.length} ta so'z saqlangan</p>
                     </div>
@@ -372,6 +375,19 @@ export default function VocabularyPage() {
 
 const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
 const main = { maxWidth: '800px', margin: '0 auto', padding: '40px 24px 60px' };
+const backBtn = {
+    display: 'inline-block',
+    marginBottom: '12px',
+    padding: '7px 16px',
+    backgroundColor: 'var(--bg-card)',
+    color: 'var(--text-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: 'Sora, sans-serif',
+};
 const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' };
 const pageSub = { fontSize: '14px', color: 'var(--text-secondary)' };
 

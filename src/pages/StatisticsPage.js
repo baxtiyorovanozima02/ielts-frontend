@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { statisticsAPI } from '../services/api';
@@ -69,6 +70,7 @@ function SectionCard({ icon, label, color, avg, total, chartData }) {
 
 
 export default function StatisticsPage() {
+    const navigate = useNavigate();
     const [overall, setOverall] = useState(null);
     const [history, setHistory] = useState(null);
     const [weakAreas, setWeakAreas] = useState(null);
@@ -135,6 +137,7 @@ export default function StatisticsPage() {
             <Navbar />
             <main style={main}>
 
+                <button onClick={() => navigate(-1)} style={backBtn}>← Orqaga</button>
                 <h1 style={pageTitle}>📊 Statistika</h1>
                 <p style={pageSub}>Progressingiz va zaif tomonlaringiz</p>
 
@@ -274,6 +277,19 @@ export default function StatisticsPage() {
 
 const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
 const main = { maxWidth: '900px', margin: '0 auto', padding: '40px 24px 60px' };
+const backBtn = {
+    display: 'inline-block',
+    marginBottom: '12px',
+    padding: '7px 16px',
+    backgroundColor: 'var(--bg-card)',
+    color: 'var(--text-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: 'Sora, sans-serif',
+};
 const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' };
 const pageSub = { fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '32px' };
 const sectionTitle = { fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '16px', marginTop: '36px', textTransform: 'uppercase', letterSpacing: '0.05em' };

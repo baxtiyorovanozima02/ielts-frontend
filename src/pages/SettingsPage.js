@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 function SettingsPage() {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState({
         email: true,
         telegram: false,
@@ -20,6 +22,7 @@ function SettingsPage() {
             <Navbar />
             <main style={styles.main}>
 
+                <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
                 <h1 style={styles.pageTitle}>Sozlamalar</h1>
 
                 {saved && <div style={styles.success}>✅ Sozlamalar saqlandi!</div>}
@@ -119,6 +122,19 @@ const styles = {
         maxWidth: '700px',
         margin: '0 auto',
         padding: '40px 24px',
+    },
+    backBtn: {
+        display: 'inline-block',
+        marginBottom: '12px',
+        padding: '7px 16px',
+        backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
     },
     pageTitle: {
         fontSize: '28px',
