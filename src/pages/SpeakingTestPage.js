@@ -14,7 +14,7 @@ function SpeakingTestPage() {
     const [mediaRecorder, setMediaRecorder] = useState(null);
     const [audioURL, setAudioURL] = useState('');
     const [timeLeft, setTimeLeft] = useState(15 * 60);
-    const [chunks, setChunks] = useState([]);
+
 
     useEffect(() => {
         testsAPI.getTest(id)
@@ -71,7 +71,6 @@ function SpeakingTestPage() {
             recorder.start();
             setMediaRecorder(recorder);
             setRecording(true);
-            setChunks(audioChunks);
         } catch {
             alert("Mikrofonga ruxsat berilmadi. Brauzer sozlamalarini tekshiring.");
         }
@@ -116,6 +115,8 @@ function SpeakingTestPage() {
                 <div style={styles.header}>
                     <div>
                         <div style={styles.breadcrumb}>
+                            <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
+                            <span style={styles.breadcrumbSep}>|</span>
                             <a href="/tests" style={styles.breadcrumbLink}>Testlar</a>
                             <span style={styles.breadcrumbSep}>/</span>
                             <span>Speaking</span>
@@ -216,6 +217,17 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         marginBottom: '28px',
+    },
+    backBtn: {
+        padding: '5px 12px',
+        backgroundColor: 'transparent',
+        color: 'var(--accent)',
+        border: '1px solid var(--border)',
+        borderRadius: '6px',
+        fontSize: '12px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
     },
     breadcrumb: {
         fontSize: '13px',

@@ -177,6 +177,9 @@ function AIResultPage() {
                         )}
 
                         <div style={s.actions}>
+                            <button onClick={() => navigate(-1)} style={s.btnBack}>
+                                ← Orqaga
+                            </button>
                             <button onClick={() => navigate('/tests')} style={s.btnPrimary}>
                                 🔄 Yana test topshirish
                             </button>
@@ -343,6 +346,17 @@ const s = {
         lineHeight: '1.8', whiteSpace: 'pre-wrap', marginTop: '12px',
     },
     actions: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' },
+    btnBack: {
+        padding: '12px 24px',
+        backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
+    },
     btnPrimary: {
         padding: '12px 24px', backgroundColor: 'var(--accent)',
         color: 'white', border: 'none', borderRadius: '8px',

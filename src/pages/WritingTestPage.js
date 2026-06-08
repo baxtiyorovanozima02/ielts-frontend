@@ -31,6 +31,7 @@ function WritingTestPage() {
             });
         }, 1000);
         return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const formatTime = (sec) => {
@@ -80,6 +81,8 @@ function WritingTestPage() {
                 <div style={styles.header}>
                     <div>
                         <div style={styles.breadcrumb}>
+                            <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
+                            <span style={styles.breadcrumbSep}>|</span>
                             <a href="/tests" style={styles.breadcrumbLink}>Testlar</a>
                             <span style={styles.breadcrumbSep}>/</span>
                             <span>Writing</span>
@@ -164,6 +167,17 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         marginBottom: '28px',
+    },
+    backBtn: {
+        padding: '5px 12px',
+        backgroundColor: 'transparent',
+        color: 'var(--accent)',
+        border: '1px solid var(--border)',
+        borderRadius: '6px',
+        fontSize: '12px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
     },
     breadcrumb: {
         fontSize: '13px',

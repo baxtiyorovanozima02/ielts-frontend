@@ -14,7 +14,7 @@ function TestResultPage() {
                 <div style={styles.empty}>
                     <div style={styles.emptyIcon}>😕</div>
                     <div>Natija topilmadi</div>
-                    <button onClick={() => navigate('/tests')} style={styles.backBtn}>
+                    <button onClick={() => navigate('/tests')} style={styles.emptyBackBtn}>
                         Testlarga qaytish
                     </button>
                 </div>
@@ -195,6 +195,12 @@ function TestResultPage() {
                 {/* Actions */}
                 <div style={styles.actions}>
                     <button
+                        onClick={() => navigate(-1)}
+                        style={styles.backBtn}
+                    >
+                        ← Orqaga
+                    </button>
+                    <button
                         onClick={() => navigate('/tests')}
                         style={styles.primaryBtn}
                     >
@@ -230,7 +236,7 @@ const styles = {
     emptyIcon: {
         fontSize: '48px',
     },
-    backBtn: {
+    emptyBackBtn: {
         padding: '10px 24px',
         backgroundColor: 'var(--accent)',
         color: 'white',
@@ -422,6 +428,17 @@ const styles = {
         gap: '12px',
         marginTop: '8px',
         flexWrap: 'wrap',
+    },
+    backBtn: {
+        padding: '12px 28px',
+        backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: '8px',
+        fontSize: '15px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
     },
     primaryBtn: {
         padding: '12px 28px',

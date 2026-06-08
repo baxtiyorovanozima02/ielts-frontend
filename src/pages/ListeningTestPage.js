@@ -335,6 +335,7 @@ export default function ListeningTestPage() {
                 {/* Header */}
                 <div style={header}>
                     <div>
+                        <button onClick={() => navigate(-1)} style={btnBack}>← Orqaga</button>
                         <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
                             🎧 {test.title}
                         </h1>
@@ -487,6 +488,19 @@ const optionLabel = { display: 'flex', alignItems: 'center', padding: '12px 16px
 const tfBtn = { padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'Sora, sans-serif' };
 const fillInput = { width: '100%', marginTop: '10px', padding: '10px 14px', backgroundColor: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', fontFamily: 'Sora, sans-serif', boxSizing: 'border-box', outline: 'none' };
 const footer = { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '28px', flexWrap: 'wrap' };
+const btnBack = {
+    padding: '7px 16px',
+    backgroundColor: 'var(--bg-card)',
+    color: 'var(--text-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: 'Sora, sans-serif',
+    marginBottom: '10px',
+    display: 'inline-block',
+};
 const btnPrimary = { padding: '10px 22px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
 const btnSecondary = { padding: '10px 22px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
 const btnSubmit = { padding: '12px 28px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };

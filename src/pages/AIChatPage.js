@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
 const SYSTEM_PROMPT = `You are an expert IELTS tutor. Help the student prepare for IELTS exam.
@@ -14,6 +15,7 @@ Be encouraging, specific, and practical. Use examples. Keep responses concise bu
 If asked in Uzbek, respond in Uzbek. If in English, respond in English.`;
 
 function AIChatPage() {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
@@ -103,7 +105,10 @@ function AIChatPage() {
 
                     <div style={s.chatWrap}>
                         <div style={s.chatHeader}>
-                            <div style={s.chatTitle}>🎓 AI IELTS Tutor</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <button onClick={() => navigate(-1)} style={s.backBtn}>← Orqaga</button>
+                                <div style={s.chatTitle}>🎓 AI IELTS Tutor</div>
+                            </div>
                             <button
                                 onClick={() => setMessages([{
                                     role: 'assistant',
@@ -211,6 +216,18 @@ const s = {
     },
     sideInfoTitle: { fontSize: '13px', fontWeight: '600', color: 'var(--accent)', marginBottom: '6px' },
     sideInfoText: { fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6' },
+    backBtn: {
+        padding: '6px 14px',
+        backgroundColor: 'var(--bg-base)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: '7px',
+        fontSize: '13px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontFamily: 'Sora, sans-serif',
+        flexShrink: 0,
+    },
     chatWrap: {
         display: 'flex', flexDirection: 'column',
         backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)',

@@ -221,6 +221,7 @@ export default function ReadingTestPage() {
                 {/* Header */}
                 <div style={header}>
                     <div>
+                        <button onClick={() => navigate(-1)} style={btnBack}>← Orqaga</button>
                         <h1 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
                             📖 {test.title}
                         </h1>
@@ -431,6 +432,20 @@ const footer = {
     gap: '12px',
     marginTop: '28px',
     flexWrap: 'wrap',
+};
+
+const btnBack = {
+    padding: '7px 16px',
+    backgroundColor: 'var(--bg-card)',
+    color: 'var(--text-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    fontFamily: 'Sora, sans-serif',
+    marginBottom: '10px',
+    display: 'inline-block',
 };
 
 const btnPrimary = {
