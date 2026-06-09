@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { aiAPI } from '../services/api';
 
-function AIDailyPlanWidget({ inline = false }) {
+function AIDailyPlanWidget() {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
@@ -15,13 +15,11 @@ function AIDailyPlanWidget({ inline = false }) {
 
     const parsePlan = (text) => {
         if (!text) return [];
-        return text.split('\n').filter(l => l.trim()).slice(0, expanded ? 999 : 4);
+        return text.split('\n').filter(l => l.trim()).slice(0, expanded ? 999 : 5);
     };
 
-    const cardStyle = inline ? s.inlineCard : s.card;
-
     if (loading) return (
-        <div style={cardStyle}>
+        <div style={s.card}>
             <div style={s.shimmer} />
             <style>{`
                 @keyframes shimmerAnim {
@@ -33,12 +31,16 @@ function AIDailyPlanWidget({ inline = false }) {
     );
 
     if (!plan?.plan_text) return (
-        <div style={cardStyle}>
-            <div style={s.aiIcon}>🤖</div>
-            <div style={s.emptyHeader}>AI Kunlik Reja</div>
-            <p style={s.emptyText}>
-                Test topshirgandan so'ng AI sizga shaxsiy o'quv reja yaratadi.
-            </p>
+        <div style={s.card}>
+            <div style={s.emptyWrap}>
+                <div style={s.emptyIcon}>🤖</div>
+                <div>
+                    <div style={s.emptyHeader}>AI Kunlik Reja</div>
+                    <p style={s.emptyText}>
+                        Test topshirgandan so'ng AI sizga shaxsiy o'quv reja yaratadi.
+                    </p>
+                </div>
+            </div>
         </div>
     );
 
@@ -46,16 +48,20 @@ function AIDailyPlanWidget({ inline = false }) {
     const totalLines = plan.plan_text.split('\n').filter(l => l.trim()).length;
 
     return (
-        <div style={cardStyle}>
-            <div style={s.titleRow}>
-                <div style={s.aiIcon}>🤖</div>
-                <div>
-                    <div style={s.title}>AI Kunlik Reja</div>
-                    {plan.ai_generated && (
-                        <div style={s.badge}>AI • Bugun</div>
-                    )}
+        <div style={s.card}>
+            <div style={s.header}>
+                <div style={s.headerLeft}>
+                    <span style={s.headerIcon}>🤖</span>
+                    <div>
+                        <div style={s.title}>AI Kunlik O'quv Reja</div>
+                        {plan.ai_generated && (
+                            <div style={s.badge}>✦ AI tomonidan yaratilgan • Bugun</div>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            <div style={s.divider} />
 
             <div style={s.planBody}>
                 {lines.map((line, i) => {
@@ -70,12 +76,9 @@ function AIDailyPlanWidget({ inline = false }) {
                 })}
             </div>
 
-            {totalLines > 4 && (
-                <button
-                    onClick={() => setExpanded(!expanded)}
-                    style={s.expandBtn}
-                >
-                    {expanded ? '▲ Qisqartirish' : `▼ Ko'proq (${totalLines - 4})`}
+            {totalLines > 5 && (
+                <button onClick={() => setExpanded(!expanded)} style={s.expandBtn}>
+                    {expanded ? '▲ Yig\'ish' : `▼ Ko'proq ko'rish (${totalLines - 5} ta)`}
                 </button>
             )}
 
@@ -93,58 +96,110 @@ const s = {
     card: {
         backgroundColor: 'var(--bg-card)',
         border: '1px solid var(--border)',
-        borderLeft: '3px solid var(--accent)',
-        borderRadius: 'var(--radius)',
-        padding: '20px',
-        display: 'flex', flexDirection: 'column', gap: '14px',
-    },
-    inlineCard: {
-        flex: 1,
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
         borderTop: '3px solid var(--accent)',
         borderRadius: '14px',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '6px',
+        gap: '12px',
+        height: '100%',
+        boxSizing: 'border-box',
     },
     shimmer: {
-        height: '80px', borderRadius: '8px',
+        height: '120px',
+        borderRadius: '8px',
         background: 'linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.05) 50%, var(--border) 75%)',
         backgroundSize: '200% 100%',
         animation: 'shimmerAnim 1.5s infinite',
     },
-    titleRow: { display: 'flex', alignItems: 'flex-start', gap: '10px' },
-    aiIcon: { fontSize: '24px' },
-    title: { fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' },
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    headerIcon: {
+        fontSize: '26px',
+    },
+    title: {
+        fontSize: '15px',
+        fontWeight: '700',
+        color: 'var(--text-primary)',
+        marginBottom: '2px',
+    },
     badge: {
-        fontSize: '11px', color: 'var(--accent)',
-        fontWeight: '500', marginTop: '2px',
+        fontSize: '11px',
+        color: 'var(--accent)',
+        fontWeight: '500',
+    },
+    divider: {
+        height: '1px',
+        backgroundColor: 'var(--border)',
+    },
+    emptyWrap: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '14px',
+    },
+    emptyIcon: {
+        fontSize: '28px',
+        flexShrink: 0,
     },
     emptyHeader: {
-        fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)',
+        fontSize: '15px',
+        fontWeight: '700',
+        color: 'var(--text-primary)',
+        marginBottom: '6px',
     },
-    emptyText: { fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 },
-    planBody: { display: 'flex', flexDirection: 'column', gap: '5px' },
+    emptyText: {
+        fontSize: '13px',
+        color: 'var(--text-muted)',
+        lineHeight: '1.6',
+        margin: 0,
+    },
+    planBody: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '7px',
+        flex: 1,
+    },
     planHeader: {
-        fontSize: '12px', fontWeight: '600',
-        color: 'var(--accent)', marginTop: '4px',
+        fontSize: '13px',
+        fontWeight: '600',
+        color: 'var(--accent)',
+        marginTop: '4px',
     },
     planLine: {
-        fontSize: '12px', color: 'var(--text-secondary)',
-        lineHeight: '1.5', display: 'flex', alignItems: 'flex-start', gap: '7px',
+        fontSize: '13px',
+        color: 'var(--text-secondary)',
+        lineHeight: '1.55',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '8px',
     },
     planBullet: {
-        width: '4px', height: '4px', borderRadius: '50%',
-        backgroundColor: 'var(--border)', flexShrink: 0, marginTop: '6px',
+        width: '5px',
+        height: '5px',
+        borderRadius: '50%',
+        backgroundColor: 'var(--accent)',
+        flexShrink: 0,
+        marginTop: '7px',
+        opacity: 0.5,
     },
     expandBtn: {
-        background: 'none', border: 'none',
-        color: 'var(--accent)', fontSize: '11px',
-        fontWeight: '600', cursor: 'pointer',
-        padding: '2px 0', fontFamily: 'Sora, sans-serif',
-        marginTop: 'auto',
+        background: 'none',
+        border: 'none',
+        color: 'var(--accent)',
+        fontSize: '12px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        padding: '4px 0 0',
+        fontFamily: 'Sora, sans-serif',
+        textAlign: 'left',
     },
 };
 

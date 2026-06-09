@@ -157,7 +157,6 @@ function DashboardPage() {
                         </div>
                     </div>
 
-                    <AIDailyPlanWidget inline />
                 </div>
 
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
@@ -204,6 +203,23 @@ function DashboardPage() {
                     )}
                 </div>
 
+                <div style={styles.midRow}>
+                    <div style={styles.midLeft}>
+                        <AIDailyPlanWidget />
+                    </div>
+                    <div style={styles.midRight}>
+                        <a href="/ai-tutor" style={styles.aiCtaCard}>
+                            <div style={styles.aiCtaGlow} />
+                            <div style={styles.aiCtaIcon}>🤖</div>
+                            <div style={styles.aiCtaTitle}>AI Tutor bilan mashq qil</div>
+                            <div style={styles.aiCtaSub}>
+                                Writing esseyingni tekshir, Speaking savollariga javob ber, grammatika tushuntirish ol.
+                            </div>
+                            <div style={styles.aiCtaBtn}>Boshlash →</div>
+                        </a>
+                    </div>
+                </div>
+
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
                 <div style={styles.navGrid}>
                     <a href="/vocabulary" style={styles.navCard}>
@@ -220,11 +236,6 @@ function DashboardPage() {
                         <div style={styles.navCardIcon}>📝</div>
                         <div style={styles.navCardTitle}>Testlar</div>
                         <div style={styles.navCardSub}>Mock testlarni boshlash</div>
-                    </a>
-                    <a href="/ai-tutor" style={{ ...styles.navCard, borderTop: '3px solid #8b5cf6' }}>
-                        <div style={styles.navCardIcon}>🤖</div>
-                        <div style={styles.navCardTitle}>AI Tutor</div>
-                        <div style={styles.navCardSub}>IELTS bo'yicha AI yordamchi</div>
                     </a>
                 </div>
 
@@ -369,6 +380,68 @@ const styles = {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '16px',
+    },
+    midRow: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '16px',
+        marginBottom: '40px',
+    },
+    midLeft: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    midRight: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    aiCtaCard: {
+        position: 'relative',
+        overflow: 'hidden',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderTop: '3px solid #8b5cf6',
+        borderRadius: '14px',
+        padding: '28px 24px',
+        textDecoration: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        height: '100%',
+        boxSizing: 'border-box',
+        transition: 'border-color 0.2s',
+    },
+    aiCtaGlow: {
+        position: 'absolute',
+        top: '-40px',
+        right: '-40px',
+        width: '130px',
+        height: '130px',
+        borderRadius: '50%',
+        backgroundColor: '#8b5cf615',
+        pointerEvents: 'none',
+    },
+    aiCtaIcon: {
+        fontSize: '32px',
+    },
+    aiCtaTitle: {
+        fontSize: '16px',
+        fontWeight: '700',
+        color: 'var(--text-primary)',
+        lineHeight: '1.3',
+    },
+    aiCtaSub: {
+        fontSize: '13px',
+        color: 'var(--text-secondary)',
+        lineHeight: '1.6',
+        flex: 1,
+    },
+    aiCtaBtn: {
+        display: 'inline-block',
+        marginTop: '4px',
+        fontSize: '13px',
+        fontWeight: '600',
+        color: '#8b5cf6',
     },
     navCard: {
         backgroundColor: 'var(--bg-card)',
