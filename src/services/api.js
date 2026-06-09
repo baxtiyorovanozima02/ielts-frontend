@@ -78,6 +78,7 @@ export const aiAPI = {
     getDailyPlan: () => api.get('/tests/daily-plan/'),
     getWritingResults: () => api.get('/tests/results/writing/'),
     getSpeakingResults: () => api.get('/tests/results/speaking/'),
+    sendChat: (messages) => api.post('/tests/ai-chat/', { messages }),
 };
 
 export const statisticsAPI = {
