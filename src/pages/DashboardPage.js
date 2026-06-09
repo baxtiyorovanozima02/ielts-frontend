@@ -11,7 +11,6 @@ function getStreak() {
     const dataStr = localStorage.getItem('streak_data');
     let data = dataStr ? JSON.parse(dataStr) : {};
 
-    // Yangi foydalanuvchi yoki ma'lumot buzilgan bo'lsa - 1 dan boshlaymiz
     if (!data.lastVisit || typeof data.lastVisit !== 'string') {
         const newData = { lastVisit: today, count: 1 };
         localStorage.setItem('streak_data', JSON.stringify(newData));
@@ -31,7 +30,6 @@ function getStreak() {
         return newCount;
     }
 
-    // Streak uzildi - yangidan 1 dan boshlaymiz
     const newData = { lastVisit: today, count: 1 };
     localStorage.setItem('streak_data', JSON.stringify(newData));
     return 1;
@@ -194,7 +192,6 @@ function DashboardPage() {
                             </div>
                         </>
                     ) : (
-                        // Skeleton lar
                         Array(4).fill(0).map((_, i) => (
                             <div key={i} style={styles.statCard}>
                                 <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
@@ -222,6 +219,11 @@ function DashboardPage() {
                         <div style={styles.navCardIcon}>📝</div>
                         <div style={styles.navCardTitle}>Testlar</div>
                         <div style={styles.navCardSub}>Mock testlarni boshlash</div>
+                    </a>
+                    <a href="/ai-tutor" style={{ ...styles.navCard, borderTop: '3px solid #8b5cf6' }}>
+                        <div style={styles.navCardIcon}>🤖</div>
+                        <div style={styles.navCardTitle}>AI Tutor</div>
+                        <div style={styles.navCardSub}>IELTS bo'yicha AI yordamchi</div>
                     </a>
                 </div>
 
