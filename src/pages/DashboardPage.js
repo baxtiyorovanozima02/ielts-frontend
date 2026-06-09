@@ -156,6 +156,8 @@ function DashboardPage() {
                             {dailyProgress === 100 ? '✅ Bajarildi!' : `${dailyGoal.total - dailyGoal.done} ta qoldi`}
                         </div>
                     </div>
+
+                    <AIDailyPlanWidget inline />
                 </div>
 
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
@@ -201,8 +203,6 @@ function DashboardPage() {
                         ))
                     )}
                 </div>
-
-                <AIDailyPlanWidget />
 
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
                 <div style={styles.navGrid}>

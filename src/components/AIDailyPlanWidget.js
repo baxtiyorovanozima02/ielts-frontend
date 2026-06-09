@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { aiAPI } from '../services/api';
 
-function AIDailyPlanWidget() {
+function AIDailyPlanWidget({ inline = false }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
@@ -15,11 +15,13 @@ function AIDailyPlanWidget() {
 
     const parsePlan = (text) => {
         if (!text) return [];
-        return text.split('\n').filter(l => l.trim()).slice(0, expanded ? 999 : 6);
+        return text.split('\n').filter(l => l.trim()).slice(0, expanded ? 999 : 4);
     };
 
+    const cardStyle = inline ? s.inlineCard : s.card;
+
     if (loading) return (
-        <div style={s.card}>
+        <div style={cardStyle}>
             <div style={s.shimmer} />
             <style>{`
                 @keyframes shimmerAnim {
@@ -31,8 +33,9 @@ function AIDailyPlanWidget() {
     );
 
     if (!plan?.plan_text) return (
-        <div style={s.card}>
-            <div style={s.emptyHeader}>🤖 AI Kunlik Reja</div>
+        <div style={cardStyle}>
+            <div style={s.aiIcon}>🤖</div>
+            <div style={s.emptyHeader}>AI Kunlik Reja</div>
             <p style={s.emptyText}>
                 Test topshirgandan so'ng AI sizga shaxsiy o'quv reja yaratadi.
             </p>
@@ -43,16 +46,14 @@ function AIDailyPlanWidget() {
     const totalLines = plan.plan_text.split('\n').filter(l => l.trim()).length;
 
     return (
-        <div style={s.card}>
-            <div style={s.header}>
-                <div style={s.titleRow}>
-                    <div style={s.aiIcon}>🤖</div>
-                    <div>
-                        <div style={s.title}>AI Kunlik O'quv Reja</div>
-                        {plan.ai_generated && (
-                            <div style={s.badge}>AI tomonidan yaratilgan • Bugun</div>
-                        )}
-                    </div>
+        <div style={cardStyle}>
+            <div style={s.titleRow}>
+                <div style={s.aiIcon}>🤖</div>
+                <div>
+                    <div style={s.title}>AI Kunlik Reja</div>
+                    {plan.ai_generated && (
+                        <div style={s.badge}>AI • Bugun</div>
+                    )}
                 </div>
             </div>
 
@@ -69,12 +70,12 @@ function AIDailyPlanWidget() {
                 })}
             </div>
 
-            {totalLines > 6 && (
+            {totalLines > 4 && (
                 <button
                     onClick={() => setExpanded(!expanded)}
                     style={s.expandBtn}
                 >
-                    {expanded ? '▲ Qisqartirish' : `▼ Ko'proq ko'rish (${totalLines - 6} ta band)`}
+                    {expanded ? '▲ Qisqartirish' : `▼ Ko'proq (${totalLines - 4})`}
                 </button>
             )}
 
@@ -97,42 +98,53 @@ const s = {
         padding: '20px',
         display: 'flex', flexDirection: 'column', gap: '14px',
     },
+    inlineCard: {
+        flex: 1,
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderTop: '3px solid var(--accent)',
+        borderRadius: '14px',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+    },
     shimmer: {
-        height: '120px', borderRadius: '8px',
+        height: '80px', borderRadius: '8px',
         background: 'linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.05) 50%, var(--border) 75%)',
         backgroundSize: '200% 100%',
         animation: 'shimmerAnim 1.5s infinite',
     },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-    titleRow: { display: 'flex', alignItems: 'flex-start', gap: '12px' },
+    titleRow: { display: 'flex', alignItems: 'flex-start', gap: '10px' },
     aiIcon: { fontSize: '24px' },
-    title: { fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' },
+    title: { fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' },
     badge: {
         fontSize: '11px', color: 'var(--accent)',
         fontWeight: '500', marginTop: '2px',
     },
     emptyHeader: {
-        fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)',
+        fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)',
     },
-    emptyText: { fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' },
-    planBody: { display: 'flex', flexDirection: 'column', gap: '6px' },
+    emptyText: { fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 },
+    planBody: { display: 'flex', flexDirection: 'column', gap: '5px' },
     planHeader: {
-        fontSize: '13px', fontWeight: '600',
-        color: 'var(--accent)', marginTop: '6px',
+        fontSize: '12px', fontWeight: '600',
+        color: 'var(--accent)', marginTop: '4px',
     },
     planLine: {
-        fontSize: '13px', color: 'var(--text-secondary)',
-        lineHeight: '1.6', display: 'flex', alignItems: 'flex-start', gap: '8px',
+        fontSize: '12px', color: 'var(--text-secondary)',
+        lineHeight: '1.5', display: 'flex', alignItems: 'flex-start', gap: '7px',
     },
     planBullet: {
-        width: '5px', height: '5px', borderRadius: '50%',
-        backgroundColor: 'var(--border)', flexShrink: 0, marginTop: '7px',
+        width: '4px', height: '4px', borderRadius: '50%',
+        backgroundColor: 'var(--border)', flexShrink: 0, marginTop: '6px',
     },
     expandBtn: {
         background: 'none', border: 'none',
-        color: 'var(--accent)', fontSize: '12px',
+        color: 'var(--accent)', fontSize: '11px',
         fontWeight: '600', cursor: 'pointer',
-        padding: '4px 0', fontFamily: 'Sora, sans-serif',
+        padding: '2px 0', fontFamily: 'Sora, sans-serif',
+        marginTop: 'auto',
     },
 };
 
