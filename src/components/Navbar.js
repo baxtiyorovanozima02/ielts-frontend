@@ -23,6 +23,7 @@ function Navbar() {
         { href: '/vocabulary', label: "Lug'at" },
         { href: '/statistics', label: 'Statistika' },
         { href: '/tests', label: 'Testlar' },
+        { href: '/ai-tutor', label: 'AI Tutor' },
         { href: '/profile', label: 'Profil' },
     ];
 
@@ -90,8 +91,8 @@ function Navbar() {
             {mobileOpen && (
                 <div style={styles.mobileMenu}>
                     {links.map(l => (
-                            <a key={l.href} href={l.href} style={styles.mobileLink} onClick={() => setMobileOpen(false)}>                            href={l.href}
-                          {l.label}
+                        <a key={l.href} href={l.href} style={styles.mobileLink} onClick={() => setMobileOpen(false)}>
+                            {l.label}
                         </a>
                     ))}
                     <hr style={styles.divider} />

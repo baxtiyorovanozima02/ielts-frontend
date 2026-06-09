@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI, statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
+import AIDailyPlanWidget from '../components/AIDailyPlanWidget';
 
 function getStreak() {
     const today = new Date().toDateString();
@@ -85,8 +86,6 @@ function DashboardPage() {
         <div style={styles.page}>
             <Navbar />
             <main style={styles.main}>
-
-                <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
 
                 {user ? (
                     <div style={styles.welcome}>
@@ -203,6 +202,8 @@ function DashboardPage() {
                     )}
                 </div>
 
+                <AIDailyPlanWidget />
+
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
                 <div style={styles.navGrid}>
                     <a href="/vocabulary" style={styles.navCard}>
@@ -241,19 +242,6 @@ const styles = {
         maxWidth: '900px',
         margin: '0 auto',
         padding: '40px 24px',
-    },
-    backBtn: {
-        display: 'inline-block',
-        marginBottom: '16px',
-        padding: '7px 16px',
-        backgroundColor: 'var(--bg-card)',
-        color: 'var(--text-secondary)',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        fontSize: '13px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
     },
     welcome: {
         marginBottom: '32px',
