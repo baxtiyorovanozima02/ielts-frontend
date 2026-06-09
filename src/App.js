@@ -18,6 +18,7 @@ import SpeakingTestPage from './pages/SpeakingTestPage';
 import TestResultPage from './pages/TestResultPage';
 import AIChatPage from './pages/AIChatPage';
 import AIResultPage from './pages/AIResultPage';
+import DailyPlanPage from './pages/DailyPlanPage';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('access_token');
@@ -44,6 +45,7 @@ function App() {
                     <Route path="/tests/result" element={<PrivateRoute><ErrorBoundary><TestResultPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/ai-result" element={<PrivateRoute><ErrorBoundary><AIResultPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/ai-tutor" element={<PrivateRoute><ErrorBoundary><AIChatPage /></ErrorBoundary></PrivateRoute>} />
+                    <Route path="/daily-plan" element={<PrivateRoute><ErrorBoundary><DailyPlanPage /></ErrorBoundary></PrivateRoute>} />
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="*" element={<NotFoundPage />} />
