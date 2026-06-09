@@ -206,20 +206,7 @@ function DashboardPage() {
                 <h2 style={styles.sectionTitle}>AI Xizmatlar</h2>
                 <div style={styles.aiSection}>
 
-                    <div style={styles.aiRow}>
-                        <div style={styles.aiRowLeft}>
-                            <div style={styles.aiRowIconWrap}>
-                                <span style={styles.aiRowIcon}>📋</span>
-                            </div>
-                            <div>
-                                <div style={styles.aiRowTitle}>Kunlik O'quv Reja</div>
-                                <div style={styles.aiRowSub}>AI testlaringiz asosida bugungi mashg'ulot rejasini tayyorlab beradi</div>
-                            </div>
-                        </div>
-                        <div style={styles.aiRowRight}>
-                            <AIDailyPlanWidget compact />
-                        </div>
-                    </div>
+                    <AIDailyPlanWidget expandable />
 
                     <div style={styles.aiRowDivider} />
 
@@ -418,13 +405,6 @@ const styles = {
         backgroundColor: 'var(--border)',
         margin: '0 28px',
     },
-    aiRowLeft: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '16px',
-        flex: 1,
-        minWidth: 0,
-    },
     aiRowIconWrap: {
         width: '48px',
         height: '48px',
@@ -449,10 +429,6 @@ const styles = {
         fontSize: '13px',
         color: 'var(--text-secondary)',
         lineHeight: '1.5',
-    },
-    aiRowRight: {
-        width: '340px',
-        flexShrink: 0,
     },
     aiRowAction: {
         display: 'flex',
