@@ -5,17 +5,35 @@ import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 
 function getStreak() {
-    const data = JSON.parse(localStorage.getItem('streak_data') || '{}');
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    if (data.lastVisit === today) return data.count || 1;
+    const dataStr = localStorage.getItem('streak_data');
+    let data = dataStr ? JSON.parse(dataStr) : {};
+
+    // Yangi foydalanuvchi yoki ma'lumot buzilgan bo'lsa - 1 dan boshlaymiz
+    if (!data.lastVisit || typeof data.lastVisit !== 'string') {
+        const newData = { lastVisit: today, count: 1 };
+        localStorage.setItem('streak_data', JSON.stringify(newData));
+        return 1;
+    }
+
+    if (data.lastVisit === today) {
+        return data.count || 1;
+    }
+
     if (data.lastVisit === yesterday) {
-        const newCount = (data.count || 1) + 1;
-        localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: newCount }));
+        const newCount = (data.count || 0) + 1;
+        localStorage.setItem('streak_data', JSON.stringify({
+            lastVisit: today,
+            count: newCount
+        }));
         return newCount;
     }
-    localStorage.setItem('streak_data', JSON.stringify({ lastVisit: today, count: 1 }));
+
+    // Streak uzildi - yangidan 1 dan boshlaymiz
+    const newData = { lastVisit: today, count: 1 };
+    localStorage.setItem('streak_data', JSON.stringify(newData));
     return 1;
 }
 
@@ -49,13 +67,16 @@ function DashboardPage() {
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
         statisticsAPI.getOverall().then(res => setOverall(res.data)).catch(() => {});
+
         setStreak(getStreak());
         setXp(getXP());
         setDailyGoal(getDailyGoal());
     }, []);
 
     const level = getLevel(xp);
-    const xpProgress = level.next ? ((xp - [0, 50, 200, 500][level.level - 1]) / (level.next - [0, 50, 200, 500][level.level - 1])) * 100 : 100;
+    const xpProgress = level.next
+        ? ((xp - [0, 50, 200, 500][level.level - 1]) / (level.next - [0, 50, 200, 500][level.level - 1])) * 100
+        : 100;
     const dailyProgress = (dailyGoal.done / dailyGoal.total) * 100;
 
     const handleSectionClick = (section) => {
@@ -68,6 +89,7 @@ function DashboardPage() {
             <main style={styles.main}>
 
                 <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
+
                 {user ? (
                     <div style={styles.welcome}>
                         <h1 style={styles.welcomeTitle}>
@@ -83,7 +105,6 @@ function DashboardPage() {
                 )}
 
                 <div style={styles.gamRow}>
-
                     <div style={styles.gamCard}>
                         <div style={styles.gamIcon}>🔥</div>
                         <div style={styles.gamValue}>{streak}</div>
@@ -138,96 +159,50 @@ function DashboardPage() {
                             {dailyProgress === 100 ? '✅ Bajarildi!' : `${dailyGoal.total - dailyGoal.done} ta qoldi`}
                         </div>
                     </div>
-
                 </div>
 
                 <h2 style={styles.sectionTitle}>Natijalarim</h2>
                 <div style={styles.statsGrid}>
                     {overall ? (
                         <>
-                            <div
-                                style={{ ...styles.statCard, cursor: 'pointer' }}
-                                onClick={() => handleSectionClick('writing')}
-                            >
+                            <div style={{ ...styles.statCard, cursor: 'pointer' }} onClick={() => handleSectionClick('writing')}>
                                 <div style={styles.statIcon}>✍️</div>
                                 <div style={styles.statLabel}>Writing</div>
-                                <div style={styles.statScore}>
-                                    {overall.writing?.average_band_score ?? '—'}
-                                </div>
-                                <div style={styles.statSub}>
-                                    {overall.writing?.total_tests ?? 0} ta test
-                                </div>
+                                <div style={styles.statScore}>{overall.writing?.average_band_score ?? '—'}</div>
+                                <div style={styles.statSub}>{overall.writing?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div
-                                style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)', cursor: 'pointer' }}
-                                onClick={() => handleSectionClick('speaking')}
-                            >
+                            <div style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)', cursor: 'pointer' }} onClick={() => handleSectionClick('speaking')}>
                                 <div style={styles.statIcon}>🎤</div>
                                 <div style={styles.statLabel}>Speaking</div>
-                                <div style={styles.statScore}>
-                                    {overall.speaking?.average_band_score ?? '—'}
-                                </div>
-                                <div style={styles.statSub}>
-                                    {overall.speaking?.total_tests ?? 0} ta test
-                                </div>
+                                <div style={styles.statScore}>{overall.speaking?.average_band_score ?? '—'}</div>
+                                <div style={styles.statSub}>{overall.speaking?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div
-                                style={{ ...styles.statCard, borderTop: '3px solid #3b82f6', cursor: 'pointer' }}
-                                onClick={() => handleSectionClick('reading')}
-                            >
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #3b82f6', cursor: 'pointer' }} onClick={() => handleSectionClick('reading')}>
                                 <div style={styles.statIcon}>📖</div>
                                 <div style={styles.statLabel}>Reading</div>
-                                <div style={styles.statScore}>
-                                    {overall.reading?.average_band_score ?? '—'}
-                                </div>
-                                <div style={styles.statSub}>
-                                    {overall.reading?.total_tests ?? 0} ta test
-                                </div>
+                                <div style={styles.statScore}>{overall.reading?.average_band_score ?? '—'}</div>
+                                <div style={styles.statSub}>{overall.reading?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div
-                                style={{ ...styles.statCard, borderTop: '3px solid #f59e0b', cursor: 'pointer' }}
-                                onClick={() => handleSectionClick('listening')}
-                            >
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #f59e0b', cursor: 'pointer' }} onClick={() => handleSectionClick('listening')}>
                                 <div style={styles.statIcon}>🎧</div>
                                 <div style={styles.statLabel}>Listening</div>
-                                <div style={styles.statScore}>
-                                    {overall.listening?.average_band_score ?? '—'}
-                                </div>
-                                <div style={styles.statSub}>
-                                    {overall.listening?.total_tests ?? 0} ta test
-                                </div>
+                                <div style={styles.statScore}>{overall.listening?.average_band_score ?? '—'}</div>
+                                <div style={styles.statSub}>{overall.listening?.total_tests ?? 0} ta test</div>
                             </div>
                         </>
                     ) : (
-                        <>
-                            <div style={styles.statCard}>
+                        // Skeleton lar
+                        Array(4).fill(0).map((_, i) => (
+                            <div key={i} style={styles.statCard}>
                                 <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
                                 <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
                                 <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
                                 <Skeleton height="12px" width="100px" />
                             </div>
-                            <div style={styles.statCard}>
-                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
-                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
-                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
-                                <Skeleton height="12px" width="100px" />
-                            </div>
-                            <div style={styles.statCard}>
-                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
-                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
-                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
-                                <Skeleton height="12px" width="100px" />
-                            </div>
-                            <div style={styles.statCard}>
-                                <Skeleton height="24px" width="40px" style={{ marginBottom: '12px' }} />
-                                <Skeleton height="14px" width="80px" style={{ marginBottom: '8px' }} />
-                                <Skeleton height="36px" width="60px" style={{ marginBottom: '4px' }} />
-                                <Skeleton height="12px" width="100px" />
-                            </div>
-                        </>
+                        ))
                     )}
                 </div>
 

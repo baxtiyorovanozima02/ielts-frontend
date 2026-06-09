@@ -1,46 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { testsAPI } from '../services/api';
 
+const FALLBACK_SECTIONS = [
+    { id: 1, name: 'writing',   display_name: 'Writing' },
+    { id: 2, name: 'speaking',  display_name: 'Speaking' },
+    { id: 3, name: 'reading',   display_name: 'Reading' },
+    { id: 4, name: 'listening', display_name: 'Listening' },
+];
+
+const SECTION_ICONS = {
+    writing:   '✍️',
+    speaking:  '🎤',
+    reading:   '📖',
+    listening: '🎧',
+};
+
+const SECTION_COLORS = {
+    writing:   'var(--accent)',
+    speaking:  'var(--accent-green)',
+    reading:   '#3b82f6',
+    listening: '#f59e0b',
+};
+
 function TestsPage() {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
-    const [sections, setSections] = useState([]);
+    const [sections, setSections] = useState(FALLBACK_SECTIONS);
     const [tests, setTests] = useState([]);
-    const [activeSection, setActiveSection] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [activeSection, setActiveSection] = useState(
+        () => searchParams.get('section') || 'writing'
+    );
+    const [testsLoading, setTestsLoading] = useState(true);
 
     useEffect(() => {
-        const urlSection = searchParams.get('section');
-        testsAPI.getSections().then(res => {
-            setSections(res.data);
-            const initialSection = urlSection || (res.data.length > 0 ? res.data[0].name : null);
-            setActiveSection(initialSection);
-        }).catch(() => {}).finally(() => setLoading(false));
-    }, [searchParams]);
+        testsAPI.getSections()
+            .then(res => {
+                if (res.data?.length > 0) {
+                    setSections(res.data);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    const loadTests = useCallback((section) => {
+        setTestsLoading(true);
+        setTests([]);
+        testsAPI.getTests(section)
+            .then(res => setTests(res.data))
+            .catch(() => {})
+            .finally(() => setTestsLoading(false));
+    }, []);
 
     useEffect(() => {
-        if (activeSection) {
-            setLoading(true);
-            testsAPI.getTests(activeSection)
-                .then(res => setTests(res.data))
-                .catch(() => {})
-                .finally(() => setLoading(false));
-        }
-    }, [activeSection]);
+        loadTests(activeSection);
+    }, [activeSection, loadTests]);
 
-    const sectionIcons = {
-        writing: '✍️',
-        speaking: '🎤',
-        reading: '📖',
-        listening: '🎧',
+    const handleSectionChange = (sectionName) => {
+        setActiveSection(sectionName);
+        setSearchParams({ section: sectionName }, { replace: true });
     };
 
     const getSectionName = (test) => {
-        if (test.section && typeof test.section === 'object') {
-            return test.section.name;
-        }
+        if (test.section && typeof test.section === 'object') return test.section.name;
         if (typeof test.section === 'number') {
             const found = sections.find(s => s.id === test.section);
             return found ? found.name : '';
@@ -50,60 +73,110 @@ function TestsPage() {
 
     const handleStart = (test) => {
         const sectionName = getSectionName(test);
-
-        if (sectionName === 'writing') {
-            navigate(`/tests/writing/${test.id}`);
-        } else if (sectionName === 'speaking') {
-            navigate(`/tests/speaking/${test.id}`);
-        } else if (sectionName === 'reading') {
-            navigate(`/tests/reading/${test.id}`);
-        } else if (sectionName === 'listening') {
-            navigate(`/tests/listening/${test.id}`);
+        const routes = {
+            writing:   `/tests/writing/${test.id}`,
+            speaking:  `/tests/speaking/${test.id}`,
+            reading:   `/tests/reading/${test.id}`,
+            listening: `/tests/listening/${test.id}`,
+        };
+        const route = routes[sectionName];
+        if (route) {
+            navigate(route);
         } else {
             alert("Bu bo'lim tez orada qo'shiladi!");
         }
     };
+
+    const accentColor = SECTION_COLORS[activeSection] || 'var(--accent)';
 
     return (
         <div style={styles.page}>
             <Navbar />
             <main style={styles.main}>
 
-                <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
-                <h1 style={styles.pageTitle}>Mock Testlar</h1>
-                <p style={styles.pageSub}>Bo'limni tanlang va testni boshlang</p>
+                <button onClick={() => navigate('/dashboard')} style={styles.backBtn}>
+                    ← Orqaga
+                </button>
 
-                <div style={styles.tabs}>
-                    {sections.map(sec => (
-                        <button
-                            key={sec.name}
-                            onClick={() => setActiveSection(sec.name)}
-                            style={{
-                                ...styles.tab,
-                                ...(activeSection === sec.name ? styles.tabActive : {})
-                            }}
-                        >
-                            {sectionIcons[sec.name] || '📝'} {sec.display_name || sec.name}
-                        </button>
-                    ))}
+                <div style={styles.header}>
+                    <h1 style={styles.pageTitle}>Mock Testlar</h1>
+                    <p style={styles.pageSub}>Bo'limni tanlang va testni boshlang</p>
                 </div>
 
-                {loading ? (
-                    <div style={styles.loading}>Yuklanmoqda...</div>
+                <div style={styles.tabs}>
+                    {sections.map(sec => {
+                        const isActive = activeSection === sec.name;
+                        const color = SECTION_COLORS[sec.name] || 'var(--accent)';
+                        return (
+                            <button
+                                key={sec.name}
+                                onClick={() => handleSectionChange(sec.name)}
+                                style={{
+                                    ...styles.tab,
+                                    ...(isActive ? {
+                                        ...styles.tabActive,
+                                        backgroundColor: color,
+                                        borderColor: color,
+                                        boxShadow: `0 4px 14px ${color}40`,
+                                    } : {}),
+                                }}
+                            >
+                                <span style={styles.tabIcon}>{SECTION_ICONS[sec.name] || '📝'}</span>
+                                {sec.display_name || sec.name}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {testsLoading ? (
+                    <div style={styles.loadingGrid}>
+                        {Array(3).fill(0).map((_, i) => (
+                            <div key={i} style={styles.skeletonCard}>
+                                <div style={{ ...styles.skeletonLine, width: '40px', height: '40px', borderRadius: '12px', marginBottom: '16px' }} />
+                                <div style={{ ...styles.skeletonLine, width: '70%', height: '20px', marginBottom: '12px' }} />
+                                <div style={{ ...styles.skeletonLine, width: '100%', height: '14px', marginBottom: '6px' }} />
+                                <div style={{ ...styles.skeletonLine, width: '80%', height: '14px', marginBottom: '24px' }} />
+                                <div style={{ ...styles.skeletonLine, width: '100%', height: '46px', borderRadius: '12px' }} />
+                            </div>
+                        ))}
+                    </div>
                 ) : tests.length === 0 ? (
                     <div style={styles.empty}>
-                        <div style={styles.emptyIcon}>📭</div>
-                        <div>Bu bo'limda hali testlar yo'q</div>
+                        <div style={styles.emptyIcon}>{SECTION_ICONS[activeSection] || '📭'}</div>
+                        <div style={styles.emptyTitle}>
+                            {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} bo'limi
+                        </div>
+                        <div style={styles.emptyText}>Bu bo'limda hali testlar yo'q</div>
                     </div>
                 ) : (
                     <div style={styles.testGrid}>
                         {tests.map(test => (
-                            <div key={test.id} style={styles.testCard}>
+                            <div
+                                key={test.id}
+                                style={styles.testCard}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.borderColor = accentColor;
+                                    e.currentTarget.style.boxShadow = `0 8px 24px ${accentColor}20`;
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.borderColor = 'var(--border)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
+                            >
+                                <div style={{ ...styles.testCardAccent, backgroundColor: accentColor }} />
                                 <div style={styles.testCardTop}>
-                                    <div style={styles.testIcon}>
-                                        {sectionIcons[getSectionName(test)] || '📝'}
+                                    <div style={{ ...styles.testIconWrap, backgroundColor: `${accentColor}15` }}>
+                                        <span style={styles.testIcon}>
+                                            {SECTION_ICONS[getSectionName(test)] || '📝'}
+                                        </span>
                                     </div>
-                                    <div style={styles.testDifficulty}>
+                                    <div style={{
+                                        ...styles.testDifficulty,
+                                        backgroundColor: `${accentColor}15`,
+                                        color: accentColor,
+                                    }}>
                                         {test.difficulty || 'Medium'}
                                     </div>
                                 </div>
@@ -112,11 +185,24 @@ function TestsPage() {
                                     {test.description || "Test topshiriq va savollardan iborat"}
                                 </div>
                                 <div style={styles.testMeta}>
-                                    <span>⏱ {test.duration_minutes || test.duration || 60} daqiqa</span>
+                                    <span style={styles.testMetaItem}>
+                                        ⏱ {test.duration_minutes || test.duration || 60} daqiqa
+                                    </span>
+                                    {test.questions_count && (
+                                        <span style={styles.testMetaItem}>
+                                            📋 {test.questions_count} savol
+                                        </span>
+                                    )}
                                 </div>
                                 <button
                                     onClick={() => handleStart(test)}
-                                    style={styles.startBtn}
+                                    style={{
+                                        ...styles.startBtn,
+                                        backgroundColor: accentColor,
+                                        boxShadow: `0 4px 14px ${accentColor}40`,
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                                 >
                                     Boshlash →
                                 </button>
@@ -132,123 +218,181 @@ function TestsPage() {
 const styles = {
     page: {
         minHeight: '100vh',
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'var(--bg-base)',
     },
     main: {
-        padding: '20px',
-        maxWidth: '1200px',
+        padding: '40px 24px',
+        maxWidth: '960px',
         margin: '0 auto',
     },
     backBtn: {
-        padding: '8px 16px',
-        backgroundColor: 'transparent',
-        border: '1px solid #ddd',
+        display: 'inline-block',
+        marginBottom: '24px',
+        padding: '7px 16px',
+        backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)',
+        border: '1px solid var(--border)',
         borderRadius: '8px',
+        fontSize: '13px',
+        fontWeight: '600',
         cursor: 'pointer',
-        marginBottom: '20px',
-        fontSize: '16px',
+        fontFamily: 'Sora, sans-serif',
+        transition: 'border-color 0.2s',
+    },
+    header: {
+        marginBottom: '32px',
     },
     pageTitle: {
-        fontSize: '32px',
+        fontSize: '28px',
         fontWeight: '700',
-        color: '#1f2937',
+        color: 'var(--text-primary)',
         marginBottom: '8px',
     },
     pageSub: {
-        color: '#6b7280',
-        fontSize: '18px',
-        marginBottom: '30px',
+        color: 'var(--text-secondary)',
+        fontSize: '14px',
     },
     tabs: {
         display: 'flex',
-        gap: '12px',
+        gap: '10px',
         flexWrap: 'wrap',
-        marginBottom: '30px',
+        marginBottom: '32px',
     },
     tab: {
-        padding: '12px 24px',
-        borderRadius: '12px',
-        border: '1px solid #e5e7eb',
-        backgroundColor: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '10px 20px',
+        borderRadius: '10px',
+        border: '1px solid var(--border)',
+        backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)',
         cursor: 'pointer',
-        fontSize: '16px',
+        fontSize: '14px',
+        fontWeight: '600',
+        fontFamily: 'Sora, sans-serif',
         transition: 'all 0.2s',
     },
     tabActive: {
-        backgroundColor: '#3b82f6',
-        color: 'white',
-        borderColor: '#3b82f6',
+        color: '#fff',
     },
-    loading: {
-        textAlign: 'center',
-        padding: '60px',
-        fontSize: '18px',
-        color: '#6b7280',
+    tabIcon: {
+        fontSize: '16px',
+    },
+    loadingGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '20px',
+    },
+    skeletonCard: {
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: '16px',
+        padding: '24px',
+    },
+    skeletonLine: {
+        backgroundColor: 'var(--border)',
+        borderRadius: '6px',
+        animation: 'pulse 1.5s ease-in-out infinite',
     },
     empty: {
         textAlign: 'center',
         padding: '80px 20px',
-        color: '#6b7280',
     },
     emptyIcon: {
-        fontSize: '48px',
+        fontSize: '52px',
         marginBottom: '16px',
+    },
+    emptyTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: 'var(--text-primary)',
+        marginBottom: '8px',
+    },
+    emptyText: {
+        fontSize: '14px',
+        color: 'var(--text-secondary)',
     },
     testGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: '24px',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '20px',
     },
     testCard: {
-        backgroundColor: 'white',
+        position: 'relative',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
         borderRadius: '16px',
         padding: '24px',
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        transition: 'all 0.3s',
+        overflow: 'hidden',
+        transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
+        cursor: 'default',
+    },
+    testCardAccent: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '3px',
     },
     testCardTop: {
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         marginBottom: '16px',
     },
+    testIconWrap: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     testIcon: {
-        fontSize: '28px',
+        fontSize: '24px',
     },
     testDifficulty: {
         padding: '4px 12px',
-        backgroundColor: '#f3f4f6',
-        borderRadius: '9999px',
-        fontSize: '14px',
-        fontWeight: '500',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: '600',
     },
     testTitle: {
-        fontSize: '20px',
-        fontWeight: '600',
-        marginBottom: '12px',
-        color: '#1f2937',
+        fontSize: '17px',
+        fontWeight: '700',
+        marginBottom: '10px',
+        color: 'var(--text-primary)',
+        lineHeight: '1.3',
     },
     testDesc: {
-        color: '#4b5563',
-        lineHeight: '1.5',
-        marginBottom: '20px',
+        color: 'var(--text-secondary)',
+        fontSize: '13px',
+        lineHeight: '1.6',
+        marginBottom: '18px',
     },
     testMeta: {
-        color: '#6b7280',
-        fontSize: '15px',
+        display: 'flex',
+        gap: '16px',
         marginBottom: '20px',
+    },
+    testMetaItem: {
+        color: 'var(--text-muted)',
+        fontSize: '12px',
+        fontWeight: '500',
     },
     startBtn: {
         width: '100%',
-        padding: '14px',
-        backgroundColor: '#3b82f6',
-        color: 'white',
+        padding: '12px',
+        color: '#fff',
         border: 'none',
-        borderRadius: '12px',
-        fontSize: '16px',
-        fontWeight: '600',
+        borderRadius: '10px',
+        fontSize: '14px',
+        fontWeight: '700',
         cursor: 'pointer',
-        transition: 'all 0.2s',
+        fontFamily: 'Sora, sans-serif',
+        transition: 'opacity 0.2s',
+        letterSpacing: '0.02em',
     },
 };
 
