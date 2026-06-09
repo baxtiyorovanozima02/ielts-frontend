@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { aiAPI } from '../services/api';
 
-function AIDailyPlanWidget() {
+function AIDailyPlanWidget({ compact = false }) {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState(false);
@@ -19,7 +19,7 @@ function AIDailyPlanWidget() {
     };
 
     if (loading) return (
-        <div style={s.card}>
+        <div style={compact ? s.compactWrap : s.card}>
             <div style={s.shimmer} />
             <style>{`
                 @keyframes shimmerAnim {
@@ -31,16 +31,10 @@ function AIDailyPlanWidget() {
     );
 
     if (!plan?.plan_text) return (
-        <div style={s.card}>
-            <div style={s.emptyWrap}>
-                <div style={s.emptyIcon}>🤖</div>
-                <div>
-                    <div style={s.emptyHeader}>AI Kunlik Reja</div>
-                    <p style={s.emptyText}>
-                        Test topshirgandan so'ng AI sizga shaxsiy o'quv reja yaratadi.
-                    </p>
-                </div>
-            </div>
+        <div style={compact ? s.compactWrap : s.card}>
+            <p style={s.emptyText}>
+                Test topshirgandan so'ng AI sizga shaxsiy o'quv reja yaratadi.
+            </p>
         </div>
     );
 
@@ -48,20 +42,19 @@ function AIDailyPlanWidget() {
     const totalLines = plan.plan_text.split('\n').filter(l => l.trim()).length;
 
     return (
-        <div style={s.card}>
-            <div style={s.header}>
-                <div style={s.headerLeft}>
-                    <span style={s.headerIcon}>🤖</span>
-                    <div>
-                        <div style={s.title}>AI Kunlik O'quv Reja</div>
-                        {plan.ai_generated && (
-                            <div style={s.badge}>✦ AI tomonidan yaratilgan • Bugun</div>
-                        )}
+        <div style={compact ? s.compactWrap : s.card}>
+            {!compact && (
+                <>
+                    <div style={s.header}>
+                        <span style={s.headerIcon}>📋</span>
+                        <div>
+                            <div style={s.title}>Kunlik O'quv Reja</div>
+                            {plan.ai_generated && <div style={s.badge}>✦ AI yaratdi • Bugun</div>}
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div style={s.divider} />
+                    <div style={s.divider} />
+                </>
+            )}
 
             <div style={s.planBody}>
                 {lines.map((line, i) => {
@@ -78,7 +71,7 @@ function AIDailyPlanWidget() {
 
             {totalLines > 5 && (
                 <button onClick={() => setExpanded(!expanded)} style={s.expandBtn}>
-                    {expanded ? '▲ Yig\'ish' : `▼ Ko'proq ko'rish (${totalLines - 5} ta)`}
+                    {expanded ? "▲ Yig'ish" : `▼ Ko'proq (${totalLines - 5} ta)`}
                 </button>
             )}
 
@@ -102,11 +95,14 @@ const s = {
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        height: '100%',
-        boxSizing: 'border-box',
+    },
+    compactWrap: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
     },
     shimmer: {
-        height: '120px',
+        height: '80px',
         borderRadius: '8px',
         background: 'linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.05) 50%, var(--border) 75%)',
         backgroundSize: '200% 100%',
@@ -114,17 +110,10 @@ const s = {
     },
     header: {
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    headerLeft: {
-        display: 'flex',
         alignItems: 'center',
         gap: '12px',
     },
-    headerIcon: {
-        fontSize: '26px',
-    },
+    headerIcon: { fontSize: '22px' },
     title: {
         fontSize: '15px',
         fontWeight: '700',
@@ -140,21 +129,6 @@ const s = {
         height: '1px',
         backgroundColor: 'var(--border)',
     },
-    emptyWrap: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '14px',
-    },
-    emptyIcon: {
-        fontSize: '28px',
-        flexShrink: 0,
-    },
-    emptyHeader: {
-        fontSize: '15px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-        marginBottom: '6px',
-    },
     emptyText: {
         fontSize: '13px',
         color: 'var(--text-muted)',
@@ -164,8 +138,7 @@ const s = {
     planBody: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '7px',
-        flex: 1,
+        gap: '6px',
     },
     planHeader: {
         fontSize: '13px',

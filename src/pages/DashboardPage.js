@@ -203,21 +203,42 @@ function DashboardPage() {
                     )}
                 </div>
 
-                <div style={styles.midRow}>
-                    <div style={styles.midLeft}>
-                        <AIDailyPlanWidget />
-                    </div>
-                    <div style={styles.midRight}>
-                        <a href="/ai-tutor" style={styles.aiCtaCard}>
-                            <div style={styles.aiCtaGlow} />
-                            <div style={styles.aiCtaIcon}>🤖</div>
-                            <div style={styles.aiCtaTitle}>AI Tutor bilan mashq qil</div>
-                            <div style={styles.aiCtaSub}>
-                                Writing esseyingni tekshir, Speaking savollariga javob ber, grammatika tushuntirish ol.
+                <h2 style={styles.sectionTitle}>AI Xizmatlar</h2>
+                <div style={styles.aiSection}>
+
+                    <div style={styles.aiRow}>
+                        <div style={styles.aiRowLeft}>
+                            <div style={styles.aiRowIconWrap}>
+                                <span style={styles.aiRowIcon}>📋</span>
                             </div>
-                            <div style={styles.aiCtaBtn}>Boshlash →</div>
-                        </a>
+                            <div>
+                                <div style={styles.aiRowTitle}>Kunlik O'quv Reja</div>
+                                <div style={styles.aiRowSub}>AI testlaringiz asosida bugungi mashg'ulot rejasini tayyorlab beradi</div>
+                            </div>
+                        </div>
+                        <div style={styles.aiRowRight}>
+                            <AIDailyPlanWidget compact />
+                        </div>
                     </div>
+
+                    <div style={styles.aiRowDivider} />
+
+                    <a href="/ai-tutor" style={styles.aiRow}>
+                        <div style={styles.aiRowLeft}>
+                            <div style={{ ...styles.aiRowIconWrap, backgroundColor: '#8b5cf620', border: '1px solid #8b5cf640' }}>
+                                <span style={styles.aiRowIcon}>💬</span>
+                            </div>
+                            <div>
+                                <div style={styles.aiRowTitle}>AI Muallim</div>
+                                <div style={styles.aiRowSub}>Essay tekshiruv, speaking mashq, grammatika — istalgan vaqt istalgan mavzu</div>
+                            </div>
+                        </div>
+                        <div style={styles.aiRowAction}>
+                            <span style={styles.aiRowActionText}>Suhbat boshlash</span>
+                            <span style={styles.aiRowArrow}>→</span>
+                        </div>
+                    </a>
+
                 </div>
 
                 <h2 style={styles.sectionTitle}>Bo'limlar</h2>
@@ -376,72 +397,87 @@ const styles = {
         fontSize: '13px',
         color: 'var(--text-muted)',
     },
+    aiSection: {
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        marginBottom: '40px',
+    },
+    aiRow: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '24px 28px',
+        gap: '24px',
+        textDecoration: 'none',
+        transition: 'background 0.15s',
+    },
+    aiRowDivider: {
+        height: '1px',
+        backgroundColor: 'var(--border)',
+        margin: '0 28px',
+    },
+    aiRowLeft: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '16px',
+        flex: 1,
+        minWidth: 0,
+    },
+    aiRowIconWrap: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '12px',
+        backgroundColor: 'var(--accent-transparent, rgba(99,179,237,0.12))',
+        border: '1px solid var(--border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+    },
+    aiRowIcon: {
+        fontSize: '22px',
+    },
+    aiRowTitle: {
+        fontSize: '15px',
+        fontWeight: '700',
+        color: 'var(--text-primary)',
+        marginBottom: '4px',
+    },
+    aiRowSub: {
+        fontSize: '13px',
+        color: 'var(--text-secondary)',
+        lineHeight: '1.5',
+    },
+    aiRowRight: {
+        width: '340px',
+        flexShrink: 0,
+    },
+    aiRowAction: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flexShrink: 0,
+        backgroundColor: '#8b5cf615',
+        border: '1px solid #8b5cf640',
+        borderRadius: '10px',
+        padding: '10px 18px',
+    },
+    aiRowActionText: {
+        fontSize: '13px',
+        fontWeight: '600',
+        color: '#8b5cf6',
+        whiteSpace: 'nowrap',
+    },
+    aiRowArrow: {
+        fontSize: '16px',
+        color: '#8b5cf6',
+    },
     navGrid: {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '16px',
-    },
-    midRow: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '16px',
-        marginBottom: '40px',
-    },
-    midLeft: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    midRight: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    aiCtaCard: {
-        position: 'relative',
-        overflow: 'hidden',
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderTop: '3px solid #8b5cf6',
-        borderRadius: '14px',
-        padding: '28px 24px',
-        textDecoration: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        height: '100%',
-        boxSizing: 'border-box',
-        transition: 'border-color 0.2s',
-    },
-    aiCtaGlow: {
-        position: 'absolute',
-        top: '-40px',
-        right: '-40px',
-        width: '130px',
-        height: '130px',
-        borderRadius: '50%',
-        backgroundColor: '#8b5cf615',
-        pointerEvents: 'none',
-    },
-    aiCtaIcon: {
-        fontSize: '32px',
-    },
-    aiCtaTitle: {
-        fontSize: '16px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-        lineHeight: '1.3',
-    },
-    aiCtaSub: {
-        fontSize: '13px',
-        color: 'var(--text-secondary)',
-        lineHeight: '1.6',
-        flex: 1,
-    },
-    aiCtaBtn: {
-        display: 'inline-block',
-        marginTop: '4px',
-        fontSize: '13px',
-        fontWeight: '600',
-        color: '#8b5cf6',
     },
     navCard: {
         backgroundColor: 'var(--bg-card)',
