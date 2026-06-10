@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { statisticsAPI } from '../services/api';
+import { useLang, translations } from '../context/LanguageContext';
 
-function BarChart({ data, color }) {
+function BarChart({ data, noDataLabel, color }) {
     if (!data || data.length === 0) return (
-        <div style={emptyChart}>Hali ma'lumot yo'q</div>
+        <div style={emptyChart}>{noDataLabel}</div>
     );
     const max = Math.max(...data.map(d => d.value), 9);
     return (
@@ -47,8 +48,7 @@ function BandBadge({ score }) {
     );
 }
 
-
-function SectionCard({ icon, label, color, avg, total, chartData }) {
+function SectionCard({ icon, label, color, avg, total, chartData, testsLabel, noDataLabel }) {
     return (
         <div style={{ ...sectionCard, borderTop: `3px solid ${color}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -60,10 +60,10 @@ function SectionCard({ icon, label, color, avg, total, chartData }) {
                     <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
                         {avg > 0 ? avg : '—'}
                     </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{total} ta test</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{testsLabel(total)}</div>
                 </div>
             </div>
-            <BarChart data={chartData} color={color} />
+            <BarChart data={chartData} color={color} noDataLabel={noDataLabel} />
         </div>
     );
 }
@@ -71,6 +71,9 @@ function SectionCard({ icon, label, color, avg, total, chartData }) {
 
 export default function StatisticsPage() {
     const navigate = useNavigate();
+    const { lang } = useLang();
+    const t = translations[lang];
+
     const [overall, setOverall] = useState(null);
     const [history, setHistory] = useState(null);
     const [weakAreas, setWeakAreas] = useState(null);
@@ -137,9 +140,9 @@ export default function StatisticsPage() {
             <Navbar />
             <main style={main}>
 
-                <button onClick={() => navigate(-1)} style={backBtn}>← Orqaga</button>
-                <h1 style={pageTitle}>📊 Statistika</h1>
-                <p style={pageSub}>Progressingiz va zaif tomonlaringiz</p>
+                <button onClick={() => navigate(-1)} style={backBtn}>{t.back}</button>
+                <h1 style={pageTitle}>{t.statsTitle}</h1>
+                <p style={pageSub}>{t.statsSub2}</p>
 
                 {/* Overall Score */}
                 <div style={overallCard}>
@@ -148,7 +151,7 @@ export default function StatisticsPage() {
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
                             <div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Umumiy Band Score</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.overallBand}</div>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                                     <span style={{ fontSize: '56px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: 1 }}>
                                         {overallAvg || '—'}
@@ -170,7 +173,7 @@ export default function StatisticsPage() {
                 </div>
 
                 {/* Section Cards */}
-                <h2 style={sectionTitle}>Bo'limlar bo'yicha</h2>
+                <h2 style={sectionTitle}>{t.bySection}</h2>
                 {loading ? (
                     <div style={grid2}>
                         {[1,2,3,4].map(i => <Skeleton key={i} height="200px" />)}
@@ -178,19 +181,24 @@ export default function StatisticsPage() {
                 ) : (
                     <div style={grid2}>
                         {sections.map(s => (
-                            <SectionCard key={s.label} {...s} />
+                            <SectionCard
+                                key={s.label}
+                                {...s}
+                                testsLabel={t.testsLabel}
+                                noDataLabel={t.noChartData}
+                            />
                         ))}
                     </div>
                 )}
 
                 {/* Weak Areas */}
-                <h2 style={sectionTitle}>⚠️ Zaif tomonlar</h2>
+                <h2 style={sectionTitle}>{t.weakAreas}</h2>
                 {loading ? (
                     <Skeleton height="100px" />
                 ) : weakAreas?.weak_areas?.length > 0 ? (
                     <div style={weakCard}>
                         <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                            Quyidagi bo'limlar bo'yicha ko'proq mashq qiling:
+                            {t.practiceMore}
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {weakAreas.weak_areas.map(area => (
@@ -217,7 +225,7 @@ export default function StatisticsPage() {
                             ))}
                         </div>
                         <div style={{ marginTop: '20px', padding: '12px 16px', backgroundColor: 'rgba(99,102,241,0.08)', borderRadius: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                            💡 <strong>Tavsiya:</strong> Zaif bo'limlar bo'yicha kuniga kamida 1 ta test ishlang.
+                            {t.tipLabel} <strong>{t.tipText}</strong>
                         </div>
                     </div>
                 ) : (
@@ -226,15 +234,15 @@ export default function StatisticsPage() {
                             <div style={{ textAlign: 'center', padding: '16px' }}>
                                 <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎉</div>
                                 <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                    Zaif tomonlar yo'q!
+                                    {t.noWeakAreas}
                                 </div>
                                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                    Barcha bo'limlarda 6.0 dan yuqori ball to'plangansiz.
+                                    {t.allAbove6}
                                 </div>
                             </div>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: '14px' }}>
-                                Hali hech qanday test topshirilmagan. Statistika test ishlangandan keyin ko'rinadi.
+                                {t.noTestsYet}
                             </div>
                         )}
                     </div>
@@ -243,7 +251,7 @@ export default function StatisticsPage() {
                 {/* Last Results */}
                 {history && (history.writing?.length > 0 || history.speaking?.length > 0) && (
                     <>
-                        <h2 style={sectionTitle}>📋 So'nggi natijalar</h2>
+                        <h2 style={sectionTitle}>{t.lastResults}</h2>
                         <div style={historyCard}>
                             {[...( history.writing?.map(r => ({ ...r, section: 'Writing', icon: '✍️', color: '#6366f1' })) || []),
                               ...( history.speaking?.map(r => ({ ...r, section: 'Speaking', icon: '🎤', color: '#10b981' })) || [])]
@@ -258,7 +266,7 @@ export default function StatisticsPage() {
                                                     {r['test__title'] || r.section}
                                                 </div>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                                    {new Date(r.created_at).toLocaleDateString('uz-UZ')}
+                                                    {new Date(r.created_at).toLocaleDateString(lang === 'uz' ? 'uz-UZ' : lang === 'ru' ? 'ru-RU' : 'en-US')}
                                                 </div>
                                             </div>
                                         </div>

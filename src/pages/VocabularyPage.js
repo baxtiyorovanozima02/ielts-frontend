@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import { vocabularyAPI } from '../services/api';
+import { useLang, translations } from '../context/LanguageContext';
 
 
-function Flashcard({ wordObj, onRate, onSkip, current, total }) {
+function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
     const [flipped, setFlipped] = useState(false);
 
     const qualityLabels = [
-        { q: 0, label: "Bilmadim", color: '#ef4444', emoji: '😞' },
-        { q: 1, label: "Qiyin",    color: '#f59e0b', emoji: '😐' },
-        { q: 2, label: "Esladim",  color: '#3b82f6', emoji: '🙂' },
-        { q: 3, label: "Oson!",    color: '#10b981', emoji: '😊' },
+        { q: 0, label: t.rateUnknown, color: '#ef4444', emoji: '😞' },
+        { q: 1, label: t.rateHard,    color: '#f59e0b', emoji: '😐' },
+        { q: 2, label: t.rateRemember,color: '#3b82f6', emoji: '🙂' },
+        { q: 3, label: t.rateEasy,    color: '#10b981', emoji: '😊' },
     ];
 
     useEffect(() => { setFlipped(false); }, [wordObj?.id]);
@@ -28,21 +29,21 @@ function Flashcard({ wordObj, onRate, onSkip, current, total }) {
             </div>
 
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', textAlign: 'center' }}>
-                {flipped ? 'Qanchalik yaxshi bildingiz?' : 'Kartani bosing — tarjimani ko\'ring'}
+                {flipped ? t.howWell : t.flipCard}
             </div>
 
-            {/* Karta */}
+            {/* Card */}
             <div onClick={() => setFlipped(!flipped)} style={flashcard}>
                 {!flipped ? (
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
                             {wordObj.word}
                         </div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>bosing →</div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t.clickToFlip}</div>
                     </div>
                 ) : (
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tarjima</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.translation}</div>
                         <div style={{ fontSize: '26px', fontWeight: '700', color: 'var(--accent)', marginBottom: '12px' }}>
                             {wordObj.translation}
                         </div>
@@ -55,7 +56,6 @@ function Flashcard({ wordObj, onRate, onSkip, current, total }) {
                 )}
             </div>
 
-            {/* Baholash tugmalari — faqat flip bo'lganda */}
             {flipped && (
                 <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {qualityLabels.map(({ q, label, color, emoji }) => (
@@ -70,19 +70,19 @@ function Flashcard({ wordObj, onRate, onSkip, current, total }) {
                 </div>
             )}
 
-            <button onClick={onSkip} style={skipBtn}>O'tkazib yuborish →</button>
+            <button onClick={onSkip} style={skipBtn}>{t.skipCard}</button>
         </div>
     );
 }
 
-function AddWordModal({ onClose, onAdd }) {
+function AddWordModal({ onClose, onAdd, t }) {
     const [form, setForm] = useState({ word: '', translation: '', example: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = async () => {
         if (!form.word.trim() || !form.translation.trim()) {
-            setError("So'z va tarjima majburiy!");
+            setError(t.wordRequired);
             return;
         }
         setLoading(true);
@@ -91,7 +91,7 @@ function AddWordModal({ onClose, onAdd }) {
             onAdd(res.data);
             onClose();
         } catch {
-            setError("Xatolik yuz berdi. Qaytadan urinib ko'ring.");
+            setError(t.addError);
         } finally {
             setLoading(false);
         }
@@ -101,28 +101,28 @@ function AddWordModal({ onClose, onAdd }) {
         <div style={modalOverlay} onClick={onClose}>
             <div style={modalBox} onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>➕ Yangi so'z</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{t.newWord}</h3>
                     <button onClick={onClose} style={closeBtn}>✕</button>
                 </div>
                 {error && <div style={errorBox}>{error}</div>}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                        <label style={inputLabel}>So'z (inglizcha) *</label>
+                        <label style={inputLabel}>{t.wordEng}</label>
                         <input style={inputStyle} placeholder="e.g. perseverance" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
                     </div>
                     <div>
-                        <label style={inputLabel}>Tarjima *</label>
+                        <label style={inputLabel}>{t.wordTranslation}</label>
                         <input style={inputStyle} placeholder="e.g. qat'iyat" value={form.translation} onChange={e => setForm({ ...form, translation: e.target.value })} />
                     </div>
                     <div>
-                        <label style={inputLabel}>Misol jumla (ixtiyoriy)</label>
+                        <label style={inputLabel}>{t.exampleSentence}</label>
                         <textarea style={{ ...inputStyle, height: '72px', resize: 'vertical' }} placeholder="e.g. Perseverance is the key to success." value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} />
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
-                    <button onClick={onClose} style={btnSecondary}>Bekor qilish</button>
+                    <button onClick={onClose} style={btnSecondary}>{t.cancel}</button>
                     <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
-                        {loading ? 'Saqlanmoqda...' : 'Saqlash'}
+                        {loading ? t.saving : t.save}
                     </button>
                 </div>
             </div>
@@ -133,13 +133,16 @@ function AddWordModal({ onClose, onAdd }) {
 
 export default function VocabularyPage() {
     const navigate = useNavigate();
+    const { lang } = useLang();
+    const t = translations[lang];
+
     const [words, setWords] = useState([]);
     const [dueReviews, setDueReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('words');
     const [showModal, setShowModal] = useState(false);
     const [search, setSearch] = useState('');
-    const [reviewMode, setReviewMode] = useState('due'); // 'due' | 'all'
+    const [reviewMode, setReviewMode] = useState('due');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [reviewDone, setReviewDone] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
@@ -162,17 +165,17 @@ export default function VocabularyPage() {
 
     const handleAddWord = (newWord) => {
         setWords(prev => [newWord, ...prev]);
-        showToast("✅ So'z qo'shildi!");
+        showToast(t.wordAdded);
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Bu so'zni o'chirishni istaysizmi?")) return;
+        if (!window.confirm(t.confirmDelete)) return;
         setDeletingId(id);
         try {
             await vocabularyAPI.deleteWord(id);
             setWords(prev => prev.filter(w => w.id !== id));
-            showToast("🗑️ So'z o'chirildi");
-        } catch { showToast("❌ Xatolik yuz berdi"); }
+            showToast(t.wordDeleted);
+        } catch { showToast(t.errorOccurred); }
         finally { setDeletingId(null); }
     };
 
@@ -229,28 +232,33 @@ export default function VocabularyPage() {
             <main style={main}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                        <button onClick={() => navigate(-1)} style={backBtn}>← Orqaga</button>
-                        <h1 style={pageTitle}>📚 Lug'at</h1>
-                        <p style={pageSub}>{words.length} ta so'z saqlangan</p>
+                        <button onClick={() => navigate(-1)} style={backBtn}>{t.back}</button>
+                        <h1 style={pageTitle}>{t.vocabTitle}</h1>
+                        <p style={pageSub}>{t.wordsCount(words.length)}</p>
                     </div>
-                    <button onClick={() => setShowModal(true)} style={btnPrimary}>➕ So'z qo'shish</button>
+                    <button onClick={() => setShowModal(true)} style={btnPrimary}>{t.addWord}</button>
                 </div>
 
                 {/* Tabs */}
                 <div style={tabRow}>
                     <button onClick={() => setTab('words')} style={{ ...tabBtn, ...(tab === 'words' ? tabActive : {}) }}>
-                        📖 Barcha so'zlar ({words.length})
+                        {t.allWords(words.length)}
                     </button>
                     <button onClick={() => setTab('review')} style={{ ...tabBtn, ...(tab === 'review' ? tabActive : {}) }}>
-                        🔄 Flashcard
+                        {t.flashcardTab}
                         {dueReviews.length > 0 && <span style={badge}>{dueReviews.length}</span>}
                     </button>
                 </div>
 
-                {/* ── Words tab ── */}
+                {/* Words tab */}
                 {tab === 'words' && (
                     <>
-                        <input style={{ ...inputStyle, marginBottom: '16px' }} placeholder="🔍 So'z yoki tarjima bo'yicha qidirish..." value={search} onChange={e => setSearch(e.target.value)} />
+                        <input
+                            style={{ ...inputStyle, marginBottom: '16px' }}
+                            placeholder={t.searchPlaceholder}
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
                         {loading ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {[1,2,3,4,5].map(i => <Skeleton key={i} height="70px" />)}
@@ -259,10 +267,10 @@ export default function VocabularyPage() {
                             <div style={emptyBox}>
                                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
                                 <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
-                                    {search ? "Topilmadi" : "Hali so'z yo'q"}
+                                    {search ? t.wordNotFound : t.noWordsYet}
                                 </div>
                                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                    {search ? "Boshqa so'z bilan qidiring" : "\"So'z qo'shish\" tugmasini bosing"}
+                                    {search ? t.tryOtherWord : t.addFirstWord}
                                 </div>
                             </div>
                         ) : (
@@ -278,7 +286,7 @@ export default function VocabularyPage() {
                                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>"{w.example}"</div>
                                             )}
                                         </div>
-                                        <button onClick={() => handleDelete(w.id)} disabled={deletingId === w.id} style={deleteBtn} title="O'chirish">
+                                        <button onClick={() => handleDelete(w.id)} disabled={deletingId === w.id} style={deleteBtn} title={t.delete}>
                                             {deletingId === w.id ? '...' : '🗑️'}
                                         </button>
                                     </div>
@@ -288,7 +296,7 @@ export default function VocabularyPage() {
                     </>
                 )}
 
-                {/* ── Flashcard tab ── */}
+                {/* Flashcard tab */}
                 {tab === 'review' && (
                     <>
                         {loading ? (
@@ -297,11 +305,11 @@ export default function VocabularyPage() {
                             <div style={emptyBox}>
                                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
                                 <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
-                                    {reviewList.length} ta so'z takrorlandi!
+                                    {t.reviewDone(reviewList.length)}
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                    <button onClick={resetReview} style={btnSecondary}>🔄 Qaytadan</button>
-                                    <button onClick={() => { startReview('all'); }} style={btnPrimary}>📖 Hammasini takrorla</button>
+                                    <button onClick={resetReview} style={btnSecondary}>{t.reviewAgain}</button>
+                                    <button onClick={() => startReview('all')} style={btnPrimary}>{t.reviewAll}</button>
                                 </div>
                             </div>
                         ) : currentWord ? (
@@ -311,19 +319,19 @@ export default function VocabularyPage() {
                                 onSkip={handleSkip}
                                 current={currentIndex + 1}
                                 total={reviewList.length}
+                                t={t}
                             />
                         ) : (
-
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {/* Due words */}
                                 <div style={{ ...reviewOptionCard, borderColor: dueReviews.length > 0 ? 'var(--accent)' : 'var(--border)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                         <div>
                                             <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                🔔 Bugungi takrorlash
+                                                {t.todayReview}
                                             </div>
                                             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                SM-2 algoritmi bo'yicha takrorlash vaqti kelgan so'zlar
+                                                {t.todayReviewSub}
                                             </div>
                                         </div>
                                         <span style={{ fontSize: '28px', fontWeight: '800', color: dueReviews.length > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
@@ -335,7 +343,7 @@ export default function VocabularyPage() {
                                         disabled={dueReviews.length === 0}
                                         style={{ ...btnPrimary, width: '100%', opacity: dueReviews.length === 0 ? 0.5 : 1, cursor: dueReviews.length === 0 ? 'not-allowed' : 'pointer' }}
                                     >
-                                        {dueReviews.length === 0 ? 'Hozircha tayyor so\'z yo\'q' : `Boshlash (${dueReviews.length} ta)`}
+                                        {dueReviews.length === 0 ? t.noReviewDue : t.startReview(dueReviews.length)}
                                     </button>
                                 </div>
 
@@ -344,10 +352,10 @@ export default function VocabularyPage() {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                         <div>
                                             <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                📖 Barcha so'zlarni takrorlash
+                                                {t.reviewAllWords}
                                             </div>
                                             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                Lug'atdagi barcha so'zlarni flashcard sifatida o'rganish
+                                                {t.reviewAllSub}
                                             </div>
                                         </div>
                                         <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
@@ -359,7 +367,7 @@ export default function VocabularyPage() {
                                         disabled={words.length === 0}
                                         style={{ ...btnSecondary, width: '100%', opacity: words.length === 0 ? 0.5 : 1 }}
                                     >
-                                        {words.length === 0 ? "Hali so'z yo'q" : `Hammasini takrorla (${words.length} ta)`}
+                                        {words.length === 0 ? t.noWordsToReview : t.reviewAllBtn(words.length)}
                                     </button>
                                 </div>
                             </div>
@@ -368,7 +376,7 @@ export default function VocabularyPage() {
                 )}
             </main>
 
-            {showModal && <AddWordModal onClose={() => setShowModal(false)} onAdd={handleAddWord} />}
+            {showModal && <AddWordModal onClose={() => setShowModal(false)} onAdd={handleAddWord} t={t} />}
         </div>
     );
 }
