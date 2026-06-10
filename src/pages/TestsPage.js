@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { testsAPI } from '../services/api';
+import { useLang, translations } from '../context/LanguageContext';
 
 const FALLBACK_SECTIONS = [
     { id: 1, name: 'writing',   display_name: 'Writing' },
@@ -27,6 +28,9 @@ const SECTION_COLORS = {
 function TestsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { lang } = useLang();
+    const t = translations[lang];
+
     const [sections, setSections] = useState(FALLBACK_SECTIONS);
     const [tests, setTests] = useState([]);
     const [activeSection, setActiveSection] = useState(
@@ -37,9 +41,7 @@ function TestsPage() {
     useEffect(() => {
         testsAPI.getSections()
             .then(res => {
-                if (res.data?.length > 0) {
-                    setSections(res.data);
-                }
+                if (res.data?.length > 0) setSections(res.data);
             })
             .catch(() => {});
     }, []);
@@ -83,7 +85,7 @@ function TestsPage() {
         if (route) {
             navigate(route);
         } else {
-            alert("Bu bo'lim tez orada qo'shiladi!");
+            alert(t.comingSoon);
         }
     };
 
@@ -95,12 +97,12 @@ function TestsPage() {
             <main style={styles.main}>
 
                 <button onClick={() => navigate('/dashboard')} style={styles.backBtn}>
-                    ← Orqaga
+                    {t.back}
                 </button>
 
                 <div style={styles.header}>
-                    <h1 style={styles.pageTitle}>Mock Testlar</h1>
-                    <p style={styles.pageSub}>Bo'limni tanlang va testni boshlang</p>
+                    <h1 style={styles.pageTitle}>{t.mockTests}</h1>
+                    <p style={styles.pageSub}>{t.mockTestsSub}</p>
                 </div>
 
                 <div style={styles.tabs}>
@@ -144,9 +146,9 @@ function TestsPage() {
                     <div style={styles.empty}>
                         <div style={styles.emptyIcon}>{SECTION_ICONS[activeSection] || '📭'}</div>
                         <div style={styles.emptyTitle}>
-                            {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} bo'limi
+                            {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
                         </div>
-                        <div style={styles.emptyText}>Bu bo'limda hali testlar yo'q</div>
+                        <div style={styles.emptyText}>{t.noTests}</div>
                     </div>
                 ) : (
                     <div style={styles.testGrid}>
@@ -182,15 +184,15 @@ function TestsPage() {
                                 </div>
                                 <div style={styles.testTitle}>{test.title}</div>
                                 <div style={styles.testDesc}>
-                                    {test.description || "Test topshiriq va savollardan iborat"}
+                                    {test.description || t.testDesc}
                                 </div>
                                 <div style={styles.testMeta}>
                                     <span style={styles.testMetaItem}>
-                                        ⏱ {test.duration_minutes || test.duration || 60} daqiqa
+                                        ⏱ {t.minutes(test.duration_minutes || test.duration || 60)}
                                     </span>
                                     {test.questions_count && (
                                         <span style={styles.testMetaItem}>
-                                            📋 {test.questions_count} savol
+                                            📋 {t.questions(test.questions_count)}
                                         </span>
                                     )}
                                 </div>
@@ -204,7 +206,7 @@ function TestsPage() {
                                     onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; }}
                                     onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                                 >
-                                    Boshlash →
+                                    {t.startBtn}
                                 </button>
                             </div>
                         ))}
@@ -216,183 +218,53 @@ function TestsPage() {
 }
 
 const styles = {
-    page: {
-        minHeight: '100vh',
-        backgroundColor: 'var(--bg-base)',
-    },
-    main: {
-        padding: '40px 24px',
-        maxWidth: '960px',
-        margin: '0 auto',
-    },
+    page: { minHeight: '100vh', backgroundColor: 'var(--bg-base)' },
+    main: { padding: '40px 24px', maxWidth: '960px', margin: '0 auto' },
     backBtn: {
-        display: 'inline-block',
-        marginBottom: '24px',
-        padding: '7px 16px',
-        backgroundColor: 'var(--bg-card)',
-        color: 'var(--text-secondary)',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        fontSize: '13px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
+        display: 'inline-block', marginBottom: '24px', padding: '7px 16px',
+        backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)',
+        border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px',
+        fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif',
         transition: 'border-color 0.2s',
     },
-    header: {
-        marginBottom: '32px',
-    },
-    pageTitle: {
-        fontSize: '28px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-        marginBottom: '8px',
-    },
-    pageSub: {
-        color: 'var(--text-secondary)',
-        fontSize: '14px',
-    },
-    tabs: {
-        display: 'flex',
-        gap: '10px',
-        flexWrap: 'wrap',
-        marginBottom: '32px',
-    },
+    header: { marginBottom: '32px' },
+    pageTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' },
+    pageSub: { color: 'var(--text-secondary)', fontSize: '14px' },
+    tabs: { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '32px' },
     tab: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '10px 20px',
-        borderRadius: '10px',
-        border: '1px solid var(--border)',
-        backgroundColor: 'var(--bg-card)',
-        color: 'var(--text-secondary)',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: '600',
-        fontFamily: 'Sora, sans-serif',
-        transition: 'all 0.2s',
+        display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
+        borderRadius: '10px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)',
+        color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px', fontWeight: '600',
+        fontFamily: 'Sora, sans-serif', transition: 'all 0.2s',
     },
-    tabActive: {
-        color: '#fff',
-    },
-    tabIcon: {
-        fontSize: '16px',
-    },
-    loadingGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '20px',
-    },
-    skeletonCard: {
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '16px',
-        padding: '24px',
-    },
-    skeletonLine: {
-        backgroundColor: 'var(--border)',
-        borderRadius: '6px',
-        animation: 'pulse 1.5s ease-in-out infinite',
-    },
-    empty: {
-        textAlign: 'center',
-        padding: '80px 20px',
-    },
-    emptyIcon: {
-        fontSize: '52px',
-        marginBottom: '16px',
-    },
-    emptyTitle: {
-        fontSize: '18px',
-        fontWeight: '600',
-        color: 'var(--text-primary)',
-        marginBottom: '8px',
-    },
-    emptyText: {
-        fontSize: '14px',
-        color: 'var(--text-secondary)',
-    },
-    testGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '20px',
-    },
+    tabActive: { color: '#fff' },
+    tabIcon: { fontSize: '16px' },
+    loadingGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
+    skeletonCard: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px' },
+    skeletonLine: { backgroundColor: 'var(--border)', borderRadius: '6px', animation: 'pulse 1.5s ease-in-out infinite' },
+    empty: { textAlign: 'center', padding: '80px 20px' },
+    emptyIcon: { fontSize: '52px', marginBottom: '16px' },
+    emptyTitle: { fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' },
+    emptyText: { fontSize: '14px', color: 'var(--text-secondary)' },
+    testGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' },
     testCard: {
-        position: 'relative',
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '16px',
-        padding: '24px',
-        overflow: 'hidden',
-        transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
-        cursor: 'default',
+        position: 'relative', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)',
+        borderRadius: '16px', padding: '24px', overflow: 'hidden',
+        transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s', cursor: 'default',
     },
-    testCardAccent: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-    },
-    testCardTop: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px',
-    },
-    testIconWrap: {
-        width: '48px',
-        height: '48px',
-        borderRadius: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    testIcon: {
-        fontSize: '24px',
-    },
-    testDifficulty: {
-        padding: '4px 12px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: '600',
-    },
-    testTitle: {
-        fontSize: '17px',
-        fontWeight: '700',
-        marginBottom: '10px',
-        color: 'var(--text-primary)',
-        lineHeight: '1.3',
-    },
-    testDesc: {
-        color: 'var(--text-secondary)',
-        fontSize: '13px',
-        lineHeight: '1.6',
-        marginBottom: '18px',
-    },
-    testMeta: {
-        display: 'flex',
-        gap: '16px',
-        marginBottom: '20px',
-    },
-    testMetaItem: {
-        color: 'var(--text-muted)',
-        fontSize: '12px',
-        fontWeight: '500',
-    },
+    testCardAccent: { position: 'absolute', top: 0, left: 0, right: 0, height: '3px' },
+    testCardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+    testIconWrap: { width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    testIcon: { fontSize: '24px' },
+    testDifficulty: { padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' },
+    testTitle: { fontSize: '17px', fontWeight: '700', marginBottom: '10px', color: 'var(--text-primary)', lineHeight: '1.3' },
+    testDesc: { color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6', marginBottom: '18px' },
+    testMeta: { display: 'flex', gap: '16px', marginBottom: '20px' },
+    testMetaItem: { color: 'var(--text-muted)', fontSize: '12px', fontWeight: '500' },
     startBtn: {
-        width: '100%',
-        padding: '12px',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '10px',
-        fontSize: '14px',
-        fontWeight: '700',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
-        transition: 'opacity 0.2s',
-        letterSpacing: '0.02em',
+        width: '100%', padding: '12px', color: '#fff', border: 'none', borderRadius: '10px',
+        fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+        transition: 'opacity 0.2s', letterSpacing: '0.02em',
     },
 };
 
