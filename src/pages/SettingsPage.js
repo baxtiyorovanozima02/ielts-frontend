@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { useLang, translations } from '../context/LanguageContext';
 
 function SettingsPage() {
     const navigate = useNavigate();
+    const { lang, changeLang } = useLang();
+    const t = translations[lang];
+
     const [notifications, setNotifications] = useState({
         email: true,
         telegram: false,
         reminders: true,
     });
-    const [language, setLanguage] = useState(() => localStorage.getItem('app_language') || 'uz');
     const [saved, setSaved] = useState(false);
 
     const handleSave = () => {
-        localStorage.setItem('app_language', language);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
     };
@@ -24,18 +26,18 @@ function SettingsPage() {
             <main style={styles.main}>
 
                 <button onClick={() => navigate(-1)} style={styles.backBtn}>← Orqaga</button>
-                <h1 style={styles.pageTitle}>Sozlamalar</h1>
+                <h1 style={styles.pageTitle}>⚙️ {t.settings}</h1>
 
-                {saved && <div style={styles.success}>✅ Sozlamalar saqlandi!</div>}
+                {saved && <div style={styles.success}>{t.saved}</div>}
 
                 {/* Notifications */}
                 <div style={styles.card}>
-                    <h2 style={styles.cardTitle}>🔔 Bildirishnomalar</h2>
+                    <h2 style={styles.cardTitle}>🔔 {t.notifications}</h2>
 
                     <div style={styles.toggleRow}>
                         <div>
-                            <div style={styles.toggleLabel}>Email bildirishnomalar</div>
-                            <div style={styles.toggleDesc}>Yangi testlar va natijalar haqida</div>
+                            <div style={styles.toggleLabel}>{t.emailNotif}</div>
+                            <div style={styles.toggleDesc}>{t.emailDesc}</div>
                         </div>
                         <div
                             style={{ ...styles.toggle, ...(notifications.email ? styles.toggleOn : {}) }}
@@ -47,8 +49,8 @@ function SettingsPage() {
 
                     <div style={styles.toggleRow}>
                         <div>
-                            <div style={styles.toggleLabel}>Telegram bildirishnomalar</div>
-                            <div style={styles.toggleDesc}>Bot orqali xabar olish</div>
+                            <div style={styles.toggleLabel}>{t.telegramNotif}</div>
+                            <div style={styles.toggleDesc}>{t.telegramDesc}</div>
                         </div>
                         <div
                             style={{ ...styles.toggle, ...(notifications.telegram ? styles.toggleOn : {}) }}
@@ -60,8 +62,8 @@ function SettingsPage() {
 
                     <div style={styles.toggleRow}>
                         <div>
-                            <div style={styles.toggleLabel}>Kunlik eslatmalar</div>
-                            <div style={styles.toggleDesc}>Har kuni o'qishga undash</div>
+                            <div style={styles.toggleLabel}>{t.dailyReminder}</div>
+                            <div style={styles.toggleDesc}>{t.dailyDesc}</div>
                         </div>
                         <div
                             style={{ ...styles.toggle, ...(notifications.reminders ? styles.toggleOn : {}) }}
@@ -74,19 +76,19 @@ function SettingsPage() {
 
                 {/* Language */}
                 <div style={styles.card}>
-                    <h2 style={styles.cardTitle}>🌐 Til</h2>
+                    <h2 style={styles.cardTitle}>🌐 {t.language}</h2>
                     <div style={styles.langGrid}>
-                        {['uz', 'ru', 'en'].map(lang => (
+                        {['uz', 'ru', 'en'].map(l => (
                             <div
-                                key={lang}
-                                style={{ ...styles.langCard, ...(language === lang ? styles.langCardActive : {}) }}
-                                onClick={() => setLanguage(lang)}
+                                key={l}
+                                style={{ ...styles.langCard, ...(lang === l ? styles.langCardActive : {}) }}
+                                onClick={() => changeLang(l)}
                             >
                                 <div style={styles.langFlag}>
-                                    {lang === 'uz' ? '🇺🇿' : lang === 'ru' ? '🇷🇺' : '🇬🇧'}
+                                    {l === 'uz' ? '🇺🇿' : l === 'ru' ? '🇷🇺' : '🇬🇧'}
                                 </div>
                                 <div style={styles.langName}>
-                                    {lang === 'uz' ? "O'zbek" : lang === 'ru' ? 'Русский' : 'English'}
+                                    {l === 'uz' ? "O'zbek" : l === 'ru' ? 'Русский' : 'English'}
                                 </div>
                             </div>
                         ))}
@@ -95,18 +97,18 @@ function SettingsPage() {
 
                 {/* Danger zone */}
                 <div style={{ ...styles.card, ...styles.dangerCard }}>
-                    <h2 style={{ ...styles.cardTitle, color: '#f87171' }}>⚠️ Xavfli zona</h2>
+                    <h2 style={{ ...styles.cardTitle, color: '#f87171' }}>{t.dangerZone}</h2>
                     <div style={styles.dangerRow}>
                         <div>
-                            <div style={styles.toggleLabel}>Akkauntni o'chirish</div>
-                            <div style={styles.toggleDesc}>Bu amalni qaytarib bo'lmaydi</div>
+                            <div style={styles.toggleLabel}>{t.deleteAcc}</div>
+                            <div style={styles.toggleDesc}>{t.deleteDesc}</div>
                         </div>
-                        <button style={styles.dangerBtn}>O'chirish</button>
+                        <button style={styles.dangerBtn}>{t.delete}</button>
                     </div>
                 </div>
 
                 <button onClick={handleSave} style={styles.saveBtn}>
-                    💾 Saqlash
+                    💾 {t.save}
                 </button>
 
             </main>
@@ -219,7 +221,7 @@ const styles = {
         transition: 'border-color 0.2s',
     },
     langCardActive: {
-        borderColor: 'var(--accent)',
+        border: '1px solid var(--accent)',
         backgroundColor: 'rgba(59,130,246,0.08)',
     },
     langFlag: {
@@ -232,7 +234,7 @@ const styles = {
         color: 'var(--text-secondary)',
     },
     dangerCard: {
-        borderColor: 'rgba(239,68,68,0.3)',
+        border: '1px solid rgba(239,68,68,0.3)',
     },
     dangerRow: {
         display: 'flex',

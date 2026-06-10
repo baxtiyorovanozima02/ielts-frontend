@@ -1,56 +1,17 @@
 import { useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { useLang, translations } from '../context/LanguageContext';
 
 function Navbar() {
     const [user, setUser] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [lang, setLang] = useState(localStorage.getItem('app_language') || 'uz');
+    const { lang } = useLang();
+    const t = translations[lang];
 
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
-
-        // localStorage o'zgarganda tilni qayta o'qiydi
-        const onStorage = () => setLang(localStorage.getItem('app_language') || 'uz');
-        window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
     }, []);
-
-    const t = {
-        uz: {
-            dashboard: 'Dashboard',
-            vocabulary: "Lug'at",
-            statistics: 'Statistika',
-            tests: 'Testlar',
-            ai: 'AI Tutor',
-            profile: 'Profil',
-            notifications: 'Bildirishnomalar',
-            settings: 'Sozlamalar',
-            logout: 'Chiqish',
-        },
-        ru: {
-            dashboard: 'Главная',
-            vocabulary: 'Словарь',
-            statistics: 'Статистика',
-            tests: 'Тесты',
-            ai: 'AI Репетитор',
-            profile: 'Профиль',
-            notifications: 'Уведомления',
-            settings: 'Настройки',
-            logout: 'Выйти',
-        },
-        en: {
-            dashboard: 'Dashboard',
-            vocabulary: 'Vocabulary',
-            statistics: 'Statistics',
-            tests: 'Tests',
-            ai: 'AI Tutor',
-            profile: 'Profile',
-            notifications: 'Notifications',
-            settings: 'Settings',
-            logout: 'Log out',
-        },
-    }[lang] || {};
 
     const handleLogout = () => {
         localStorage.removeItem('access_token');
@@ -91,7 +52,7 @@ function Navbar() {
                 </div>
 
                 <div style={styles.right}>
-                    <button style={styles.iconBtn} title="Bildirishnomalar">
+                    <button style={styles.iconBtn} title={t.notifications}>
                         🔔
                     </button>
 
