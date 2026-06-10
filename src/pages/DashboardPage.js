@@ -1,9 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI, statisticsAPI } from '../services/api';
 import Navbar from '../components/Navbar';
 import Skeleton from '../components/Skeleton';
 import AIDailyPlanWidget from '../components/AIDailyPlanWidget';
+
+// ── Animatsiya: raqamni 0 dan target gacha sanaydi ──────────────────
+function useCountUp(target, duration = 1000, enabled = true) {
+    const [display, setDisplay] = useState(0);
+    const rafRef = useRef(null);
+
+    useEffect(() => {
+        if (!enabled || target === 0 || target == null) {
+            setDisplay(target ?? 0);
+            return;
+        }
+        const start = performance.now();
+        const tick = (now) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay(target % 1 === 0
+                ? Math.round(eased * target)
+                : Math.round(eased * target * 10) / 10
+            );
+            if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(rafRef.current);
+    }, [target, duration, enabled]);
+
+    return display;
+}
 
 function getStreak() {
     const today = new Date().toDateString();
@@ -62,6 +91,7 @@ function DashboardPage() {
     const [streak, setStreak] = useState(1);
     const [xp, setXp] = useState(0);
     const [dailyGoal, setDailyGoal] = useState({ done: 0, total: 3 });
+    const [animated, setAnimated] = useState(false);
 
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
@@ -70,6 +100,9 @@ function DashboardPage() {
         setStreak(getStreak());
         setXp(getXP());
         setDailyGoal(getDailyGoal());
+        // animatsiya: sahifa ochilgandan 100ms keyin boshlaydi
+        const t = setTimeout(() => setAnimated(true), 100);
+        return () => clearTimeout(t);
     }, []);
 
     const level = getLevel(xp);
@@ -77,6 +110,22 @@ function DashboardPage() {
         ? ((xp - [0, 50, 200, 500][level.level - 1]) / (level.next - [0, 50, 200, 500][level.level - 1])) * 100
         : 100;
     const dailyProgress = (dailyGoal.done / dailyGoal.total) * 100;
+
+    // ── Animatsiyali raqamlar ────────────────────────────────────────
+    const animStreak   = useCountUp(streak, 800, animated);
+    const animXp       = useCountUp(xp, 1000, animated);
+    const animXpPct    = useCountUp(xpProgress, 1000, animated);
+    const animDailyPct = useCountUp(dailyProgress, 800, animated);
+
+    const writingScore   = overall?.writing?.average_band_score   ?? 0;
+    const speakingScore  = overall?.speaking?.average_band_score  ?? 0;
+    const readingScore   = overall?.reading?.average_band_score   ?? 0;
+    const listeningScore = overall?.listening?.average_band_score ?? 0;
+
+    const animWriting   = useCountUp(writingScore,   900, animated && !!overall);
+    const animSpeaking  = useCountUp(speakingScore,  1000, animated && !!overall);
+    const animReading   = useCountUp(readingScore,   1100, animated && !!overall);
+    const animListening = useCountUp(listeningScore, 1200, animated && !!overall);
 
     const handleSectionClick = (section) => {
         navigate(`/tests?section=${section}`);
@@ -104,7 +153,7 @@ function DashboardPage() {
                 <div style={styles.gamRow}>
                     <div style={styles.gamCard}>
                         <div style={styles.gamIcon}>🔥</div>
-                        <div style={styles.gamValue}>{streak}</div>
+                        <div style={styles.gamValue}>{animStreak}</div>
                         <div style={styles.gamLabel}>Kunlik streak</div>
                         <div style={styles.gamSub}>kun ketma-ket</div>
                     </div>
@@ -113,7 +162,7 @@ function DashboardPage() {
                         <div style={styles.levelHeader}>
                             <div>
                                 <div style={styles.gamIcon}>⚡</div>
-                                <div style={styles.gamValue}>{xp} XP</div>
+                                <div style={styles.gamValue}>{animXp} XP</div>
                                 <div style={styles.gamLabel}>
                                     Level {level.level} —{' '}
                                     <span style={{ color: level.color }}>{level.title}</span>
@@ -131,12 +180,12 @@ function DashboardPage() {
                         <div style={styles.progressBar}>
                             <div style={{
                                 ...styles.progressFill,
-                                width: `${xpProgress}%`,
+                                width: `${animXpPct}%`,
                                 backgroundColor: level.color,
                             }} />
                         </div>
                         <div style={styles.progressLabels}>
-                            <span>{xp} XP</span>
+                            <span>{animXp} XP</span>
                             <span>{level.next ? `${level.next} XP gacha` : 'Max level! 🏆'}</span>
                         </div>
                     </div>
@@ -148,8 +197,8 @@ function DashboardPage() {
                         <div style={styles.progressBar}>
                             <div style={{
                                 ...styles.progressFill,
-                                width: `${dailyProgress}%`,
-                                backgroundColor: dailyProgress === 100 ? '#10b981' : 'var(--accent)',
+                                width: `${animDailyPct}%`,
+                                backgroundColor: animDailyPct >= 100 ? '#10b981' : 'var(--accent)',
                             }} />
                         </div>
                         <div style={styles.gamSub}>
@@ -163,31 +212,31 @@ function DashboardPage() {
                 <div style={styles.statsGrid}>
                     {overall ? (
                         <>
-                            <div style={{ ...styles.statCard, cursor: 'pointer' }} onClick={() => handleSectionClick('writing')}>
+                            <div style={{ ...styles.statCard, cursor: 'pointer', opacity: animated ? 1 : 0, transform: animated ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.4s ease 0ms, transform 0.4s ease 0ms' }} onClick={() => handleSectionClick('writing')}>
                                 <div style={styles.statIcon}>✍️</div>
                                 <div style={styles.statLabel}>Writing</div>
-                                <div style={styles.statScore}>{overall.writing?.average_band_score ?? '—'}</div>
+                                <div style={styles.statScore}>{animWriting > 0 ? animWriting : '—'}</div>
                                 <div style={styles.statSub}>{overall.writing?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)', cursor: 'pointer' }} onClick={() => handleSectionClick('speaking')}>
+                            <div style={{ ...styles.statCard, borderTop: '3px solid var(--accent-green)', cursor: 'pointer', opacity: animated ? 1 : 0, transform: animated ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.4s ease 80ms, transform 0.4s ease 80ms' }} onClick={() => handleSectionClick('speaking')}>
                                 <div style={styles.statIcon}>🎤</div>
                                 <div style={styles.statLabel}>Speaking</div>
-                                <div style={styles.statScore}>{overall.speaking?.average_band_score ?? '—'}</div>
+                                <div style={styles.statScore}>{animSpeaking > 0 ? animSpeaking : '—'}</div>
                                 <div style={styles.statSub}>{overall.speaking?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div style={{ ...styles.statCard, borderTop: '3px solid #3b82f6', cursor: 'pointer' }} onClick={() => handleSectionClick('reading')}>
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #3b82f6', cursor: 'pointer', opacity: animated ? 1 : 0, transform: animated ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.4s ease 160ms, transform 0.4s ease 160ms' }} onClick={() => handleSectionClick('reading')}>
                                 <div style={styles.statIcon}>📖</div>
                                 <div style={styles.statLabel}>Reading</div>
-                                <div style={styles.statScore}>{overall.reading?.average_band_score ?? '—'}</div>
+                                <div style={styles.statScore}>{animReading > 0 ? animReading : '—'}</div>
                                 <div style={styles.statSub}>{overall.reading?.total_tests ?? 0} ta test</div>
                             </div>
 
-                            <div style={{ ...styles.statCard, borderTop: '3px solid #f59e0b', cursor: 'pointer' }} onClick={() => handleSectionClick('listening')}>
+                            <div style={{ ...styles.statCard, borderTop: '3px solid #f59e0b', cursor: 'pointer', opacity: animated ? 1 : 0, transform: animated ? 'translateY(0)' : 'translateY(16px)', transition: 'opacity 0.4s ease 240ms, transform 0.4s ease 240ms' }} onClick={() => handleSectionClick('listening')}>
                                 <div style={styles.statIcon}>🎧</div>
                                 <div style={styles.statLabel}>Listening</div>
-                                <div style={styles.statScore}>{overall.listening?.average_band_score ?? '—'}</div>
+                                <div style={styles.statScore}>{animListening > 0 ? animListening : '—'}</div>
                                 <div style={styles.statSub}>{overall.listening?.total_tests ?? 0} ta test</div>
                             </div>
                         </>
