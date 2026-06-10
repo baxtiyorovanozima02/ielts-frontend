@@ -5,10 +5,52 @@ function Navbar() {
     const [user, setUser] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [lang, setLang] = useState(localStorage.getItem('app_language') || 'uz');
 
     useEffect(() => {
         authAPI.getMe().then(res => setUser(res.data)).catch(() => {});
+
+        // localStorage o'zgarganda tilni qayta o'qiydi
+        const onStorage = () => setLang(localStorage.getItem('app_language') || 'uz');
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
     }, []);
+
+    const t = {
+        uz: {
+            dashboard: 'Dashboard',
+            vocabulary: "Lug'at",
+            statistics: 'Statistika',
+            tests: 'Testlar',
+            ai: 'AI Tutor',
+            profile: 'Profil',
+            notifications: 'Bildirishnomalar',
+            settings: 'Sozlamalar',
+            logout: 'Chiqish',
+        },
+        ru: {
+            dashboard: 'Главная',
+            vocabulary: 'Словарь',
+            statistics: 'Статистика',
+            tests: 'Тесты',
+            ai: 'AI Репетитор',
+            profile: 'Профиль',
+            notifications: 'Уведомления',
+            settings: 'Настройки',
+            logout: 'Выйти',
+        },
+        en: {
+            dashboard: 'Dashboard',
+            vocabulary: 'Vocabulary',
+            statistics: 'Statistics',
+            tests: 'Tests',
+            ai: 'AI Tutor',
+            profile: 'Profile',
+            notifications: 'Notifications',
+            settings: 'Settings',
+            logout: 'Log out',
+        },
+    }[lang] || {};
 
     const handleLogout = () => {
         localStorage.removeItem('access_token');
@@ -19,12 +61,12 @@ function Navbar() {
     const initials = user?.username?.slice(0, 2).toUpperCase() || '??';
 
     const links = [
-        { href: '/dashboard', label: 'Dashboard' },
-        { href: '/vocabulary', label: "Lug'at" },
-        { href: '/statistics', label: 'Statistika' },
-        { href: '/tests', label: 'Testlar' },
-        { href: '/ai-tutor', label: 'AI Tutor' },
-        { href: '/profile', label: 'Profil' },
+        { href: '/dashboard',  label: t.dashboard },
+        { href: '/vocabulary', label: t.vocabulary },
+        { href: '/statistics', label: t.statistics },
+        { href: '/tests',      label: t.tests },
+        { href: '/ai-tutor',   label: t.ai },
+        { href: '/profile',    label: t.profile },
     ];
 
     return (
@@ -68,11 +110,11 @@ function Navbar() {
                                     <div style={styles.dropdownEmail}>{user?.email}</div>
                                 </div>
                                 <hr style={styles.divider} />
-                                <a href="/profile" style={styles.dropdownItem}>👤 Profil</a>
-                                <a href="/settings" style={styles.dropdownItem}>⚙️ Sozlamalar</a>
+                                <a href="/profile" style={styles.dropdownItem}>👤 {t.profile}</a>
+                                <a href="/settings" style={styles.dropdownItem}>⚙️ {t.settings}</a>
                                 <hr style={styles.divider} />
                                 <button onClick={handleLogout} style={styles.dropdownLogout}>
-                                    🚪 Chiqish
+                                    🚪 {t.logout}
                                 </button>
                             </div>
                         )}
@@ -97,7 +139,7 @@ function Navbar() {
                     ))}
                     <hr style={styles.divider} />
                     <button onClick={handleLogout} style={styles.mobileLogout}>
-                        🚪 Chiqish
+                        🚪 {t.logout}
                     </button>
                 </div>
             )}

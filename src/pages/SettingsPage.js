@@ -9,10 +9,11 @@ function SettingsPage() {
         telegram: false,
         reminders: true,
     });
-    const [language, setLanguage] = useState('uz');
+    const [language, setLanguage] = useState(() => localStorage.getItem('app_language') || 'uz');
     const [saved, setSaved] = useState(false);
 
     const handleSave = () => {
+        localStorage.setItem('app_language', language);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
     };
