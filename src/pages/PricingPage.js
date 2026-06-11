@@ -1,16 +1,18 @@
 import Navbar from '../components/Navbar';
+import { useLang, translations } from '../context/LanguageContext';
 
 function PricingPage() {
+    const { lang } = useLang();
+    const t = translations[lang];
+
     return (
         <div style={styles.page}>
             <Navbar />
             <main style={styles.main}>
 
                 <div style={styles.header}>
-                    <h1 style={styles.title}>Narxlar</h1>
-                    <p style={styles.subtitle}>
-                        Maqsadingizga mos tarifni tanlang
-                    </p>
+                    <h1 style={styles.title}>{t.pricingTitle}</h1>
+                    <p style={styles.subtitle}>{t.pricingSubtitle}</p>
                 </div>
 
                 <div style={styles.grid}>
@@ -20,39 +22,31 @@ function PricingPage() {
                         <div style={styles.planIcon}>🆓</div>
                         <div style={styles.planName}>Free</div>
                         <div style={styles.planPrice}>
-                            0 <span style={styles.currency}>UZS/oy</span>
+                            0 <span style={styles.currency}>{t.pricingPerMonth}</span>
                         </div>
                         <ul style={styles.features}>
-                            <li style={styles.feature}>✅ 3 ta mock test</li>
-                            <li style={styles.feature}>✅ Lug'at moduli</li>
-                            <li style={styles.feature}>✅ Statistika</li>
-                            <li style={styles.feature}>✅ Telegram bot</li>
-                            <li style={{ ...styles.feature, ...styles.featureOff }}>❌ AI baholash</li>
-                            <li style={{ ...styles.feature, ...styles.featureOff }}>❌ Cheksiz testlar</li>
-                            <li style={{ ...styles.feature, ...styles.featureOff }}>❌ Shaxsiy reja</li>
+                            {t.pricingFreeFeatures.map((f, i) => (
+                                <li key={i} style={{ ...styles.feature, ...(f.startsWith('❌') ? styles.featureOff : {}) }}>{f}</li>
+                            ))}
                         </ul>
-                        <a href="/register" style={styles.btn}>Boshlash</a>
+                        <a href="/register" style={styles.btn}>{t.pricingFreeBtn}</a>
                     </div>
 
                     {/* Premium */}
                     <div style={{ ...styles.card, ...styles.premiumCard }}>
-                        <div style={styles.popularBadge}>⭐ Mashhur</div>
+                        <div style={styles.popularBadge}>{t.pricingPopular}</div>
                         <div style={styles.planIcon}>💎</div>
                         <div style={styles.planName}>Premium</div>
                         <div style={styles.planPrice}>
-                            49,900 <span style={styles.currency}>UZS/oy</span>
+                            49,900 <span style={styles.currency}>{t.pricingPerMonth}</span>
                         </div>
                         <ul style={styles.features}>
-                            <li style={styles.feature}>✅ Cheksiz mock testlar</li>
-                            <li style={styles.feature}>✅ AI Writing baholash</li>
-                            <li style={styles.feature}>✅ AI Speaking baholash</li>
-                            <li style={styles.feature}>✅ Shaxsiy o'quv rejasi</li>
-                            <li style={styles.feature}>✅ Telegram bot</li>
-                            <li style={styles.feature}>✅ Statistika va tahlil</li>
-                            <li style={styles.feature}>✅ Lug'at moduli</li>
+                            {t.pricingPremiumFeatures.map((f, i) => (
+                                <li key={i} style={styles.feature}>{f}</li>
+                            ))}
                         </ul>
                         <a href="/register" style={{ ...styles.btn, ...styles.btnPremium }}>
-                            Premium olish
+                            {t.pricingPremiumBtn}
                         </a>
                     </div>
 
@@ -60,12 +54,8 @@ function PricingPage() {
 
                 {/* FAQ */}
                 <div style={styles.faq}>
-                    <h2 style={styles.faqTitle}>Ko'p so'raladigan savollar</h2>
-                    {[
-                        { q: "To'lov qanday amalga oshiriladi?", a: "Click yoki Payme orqali to'lash mumkin." },
-                        { q: "Obunani bekor qilish mumkinmi?", a: "Ha, istalgan vaqtda bekor qilish mumkin." },
-                        { q: "Bepul versiyada qancha test bor?", a: "Bepul versiyada 3 ta mock test mavjud." },
-                    ].map((item, i) => (
+                    <h2 style={styles.faqTitle}>{t.pricingFaqTitle}</h2>
+                    {t.pricingFaq.map((item, i) => (
                         <div key={i} style={styles.faqItem}>
                             <div style={styles.faqQ}>❓ {item.q}</div>
                             <div style={styles.faqA}>{item.a}</div>
