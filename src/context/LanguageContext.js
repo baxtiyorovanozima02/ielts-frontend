@@ -199,6 +199,13 @@ export const translations = {
         dpDur3Label:  "1 Oylik Reja",
         dpDur3Sub:    "To'liq IELTS tayyorgarlik dasturi",
         dpSkillAll:   "Hammasi",
+        // AIDailyPlanWidget
+        widgetTitle:    "Kunlik O'quv Reja",
+        widgetMorning:  "Ertalabki reja",
+        widgetAfternoon:"Kunduzgi reja",
+        widgetEvening:  "Kechki reja",
+        widgetSub:      "AI sizga shaxsiy reja tuzadi",
+        widgetCompact:  "📋 Reja yaratish",
     },
     ru: {
         // Navbar
@@ -377,6 +384,13 @@ export const translations = {
         dpDur3Label:  "План на 1 месяц",
         dpDur3Sub:    "Полная программа подготовки к IELTS",
         dpSkillAll:   "Все",
+        // AIDailyPlanWidget
+        widgetTitle:    "Учебный план на день",
+        widgetMorning:  "Утренний план",
+        widgetAfternoon:"Дневной план",
+        widgetEvening:  "Вечерний план",
+        widgetSub:      "AI составит персональный план",
+        widgetCompact:  "📋 Создать план",
     },
     en: {
         // Navbar
@@ -555,5 +569,12 @@ export const translations = {
         dpDur3Label:  "1-Month Plan",
         dpDur3Sub:    "Full IELTS preparation program",
         dpSkillAll:   "All",
+        // AIDailyPlanWidget
+        widgetTitle:    "Daily Study Plan",
+        widgetMorning:  "Morning plan",
+        widgetAfternoon:"Afternoon plan",
+        widgetEvening:  "Evening plan",
+        widgetSub:      "AI creates your personal plan",
+        widgetCompact:  "📋 Create plan",
     },
 };

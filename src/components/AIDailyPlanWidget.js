@@ -1,15 +1,26 @@
 import { useNavigate } from 'react-router-dom';
+import { useLang, translations } from '../context/LanguageContext';
 
-function getTimeOfDay() {
+function getTimeOfDayKey() {
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return { label: 'Ertalabki reja', icon: '🌅' };
-    if (hour >= 12 && hour < 18) return { label: 'Kunduzgi reja', icon: '☀️' };
-    return { label: 'Kechki reja', icon: '🌙' };
+    if (hour >= 5 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 18) return 'afternoon';
+    return 'evening';
 }
 
 function AIDailyPlanWidget({ expandable = false, compact = false }) {
     const navigate = useNavigate();
-    const timeOfDay = getTimeOfDay();
+    const { lang } = useLang();
+    const t = translations[lang];
+
+    const timeKey = getTimeOfDayKey();
+    const timeLabel = timeKey === 'morning'
+        ? t.widgetMorning
+        : timeKey === 'afternoon'
+            ? t.widgetAfternoon
+            : t.widgetEvening;
+
+    const timeIcon = timeKey === 'morning' ? '🌅' : timeKey === 'afternoon' ? '☀️' : '🌙';
 
     const handleClick = () => navigate('/daily-plan');
 
@@ -21,9 +32,9 @@ function AIDailyPlanWidget({ expandable = false, compact = false }) {
                         <span style={{ fontSize: '22px' }}>📋</span>
                     </div>
                     <div style={s.triggerTexts}>
-                        <div style={s.triggerTitle}>Kunlik O'quv Reja</div>
+                        <div style={s.triggerTitle}>{t.widgetTitle}</div>
                         <div style={s.triggerSub}>
-                            {timeOfDay.icon} {timeOfDay.label} — AI sizga shaxsiy reja tuzadi
+                            {timeIcon} {timeLabel} — {t.widgetSub}
                         </div>
                     </div>
                 </div>
@@ -35,7 +46,7 @@ function AIDailyPlanWidget({ expandable = false, compact = false }) {
     if (compact) {
         return (
             <button style={s.compactBtn} onClick={handleClick}>
-                <span>📋 Reja yaratish</span>
+                <span>{t.widgetCompact}</span>
                 <span>→</span>
             </button>
         );
