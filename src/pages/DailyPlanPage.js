@@ -1,48 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-
-const DURATIONS = [
-    {
-        key: '1day',
-        label: '1 Kunlik Reja',
-        sublabel: 'Bugungi uchun tez va samarali reja',
-        icon: '⚡',
-        color: '#f59e0b',
-        bg: 'rgba(245,158,11,0.08)',
-        border: 'rgba(245,158,11,0.25)',
-        glow: 'rgba(245,158,11,0.15)',
-    },
-    {
-        key: '1week',
-        label: '1 Haftalik Reja',
-        sublabel: '7 kunlik bosqichma-bosqich o\'quv yo\'li',
-        icon: '📅',
-        color: '#6366f1',
-        bg: 'rgba(99,102,241,0.08)',
-        border: 'rgba(99,102,241,0.25)',
-        glow: 'rgba(99,102,241,0.15)',
-    },
-    {
-        key: '1month',
-        label: '1 Oylik Reja',
-        sublabel: 'To\'liq IELTS tayyorgarlik dasturi',
-        icon: '🎯',
-        color: '#10b981',
-        bg: 'rgba(16,185,129,0.08)',
-        border: 'rgba(16,185,129,0.25)',
-        glow: 'rgba(16,185,129,0.15)',
-    },
-];
-
-const SKILLS = [
-    { key: 'all', label: 'Hammasi', icon: '🌟' },
-    { key: 'Reading', label: 'Reading', icon: '📖' },
-    { key: 'Listening', label: 'Listening', icon: '🎧' },
-    { key: 'Writing', label: 'Writing', icon: '✍️' },
-    { key: 'Speaking', label: 'Speaking', icon: '🗣️' },
-    { key: 'Vocabulary', label: 'Vocabulary', icon: '📚' },
-];
+import { useLang, translations } from '../context/LanguageContext';
 
 const SKILL_COLORS = {
     Reading: { color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)' },
@@ -153,6 +112,51 @@ Faqat JSON, boshqa matn yoq.`;
 
 export default function DailyPlanPage() {
     const navigate = useNavigate();
+    const { lang } = useLang();
+    const t = translations[lang];
+
+    const DURATIONS = [
+        {
+            key: '1day',
+            label: t.dpDur1Label,
+            sublabel: t.dpDur1Sub,
+            icon: '⚡',
+            color: '#f59e0b',
+            bg: 'rgba(245,158,11,0.08)',
+            border: 'rgba(245,158,11,0.25)',
+            glow: 'rgba(245,158,11,0.15)',
+        },
+        {
+            key: '1week',
+            label: t.dpDur2Label,
+            sublabel: t.dpDur2Sub,
+            icon: '📅',
+            color: '#6366f1',
+            bg: 'rgba(99,102,241,0.08)',
+            border: 'rgba(99,102,241,0.25)',
+            glow: 'rgba(99,102,241,0.15)',
+        },
+        {
+            key: '1month',
+            label: t.dpDur3Label,
+            sublabel: t.dpDur3Sub,
+            icon: '🎯',
+            color: '#10b981',
+            bg: 'rgba(16,185,129,0.08)',
+            border: 'rgba(16,185,129,0.25)',
+            glow: 'rgba(16,185,129,0.15)',
+        },
+    ];
+
+    const SKILLS = [
+        { key: 'all', label: t.dpSkillAll, icon: '🌟' },
+        { key: 'Reading', label: 'Reading', icon: '📖' },
+        { key: 'Listening', label: 'Listening', icon: '🎧' },
+        { key: 'Writing', label: 'Writing', icon: '✍️' },
+        { key: 'Speaking', label: 'Speaking', icon: '🗣️' },
+        { key: 'Vocabulary', label: 'Vocabulary', icon: '📚' },
+    ];
+
     const [step, setStep] = useState('select'); // 'select' | 'loading' | 'plan'
     const [duration, setDuration] = useState(null);
     const [skill, setSkill] = useState('all');
@@ -182,7 +186,7 @@ export default function DailyPlanPage() {
             setTasks(result.tasks || []);
             setStep('plan');
         } catch (e) {
-            setError('Reja yaratishda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+            setError(t.dpErrorMsg);
             setStep('select');
         }
     };
@@ -224,10 +228,11 @@ export default function DailyPlanPage() {
                         {/* Hero */}
                         <div style={s.hero}>
                             <div style={s.heroIcon}>🎓</div>
-                            <h1 style={s.heroTitle}>Shaxsiy O'quv Rejangiz</h1>
+                            <h1 style={s.heroTitle}>{t.dpHeroTitle}</h1>
                             <p style={s.heroSub}>
-                                AI sizning darajangizga mos, maqsadli reja tuzib beradi.<br />
-                                Muddatni tanlang va boshlang.
+                                {t.dpHeroSub.split('\n').map((line, i) => (
+                                    <span key={i}>{line}{i === 0 && <br />}</span>
+                                ))}
                             </p>
                         </div>
 
@@ -240,7 +245,7 @@ export default function DailyPlanPage() {
 
                         {/* Skill selector */}
                         <div style={s.block}>
-                            <div style={s.blockLabel}>Ko'nikma yo'nalishi</div>
+                            <div style={s.blockLabel}>{t.dpSkillLabel}</div>
                             <div style={s.skillRow}>
                                 {SKILLS.map(sk => (
                                     <button
@@ -266,7 +271,7 @@ export default function DailyPlanPage() {
 
                         {/* Duration cards */}
                         <div style={s.block}>
-                            <div style={s.blockLabel}>Reja muddatini tanlang</div>
+                            <div style={s.blockLabel}>{t.dpDurLabel}</div>
                             <div style={s.durCol}>
                                 {DURATIONS.map((d, i) => (
                                     <div
@@ -314,11 +319,11 @@ export default function DailyPlanPage() {
                             }}
                         >
                             <span style={{ fontSize: '20px' }}>🤖</span>
-                            <span>AI Reja Tuzsin</span>
+                            <span>{t.dpGenBtn}</span>
                             <span style={{ fontSize: '18px' }}>→</span>
                         </button>
                         {!duration && (
-                            <p style={s.genHint}>Reja yaratish uchun yuqoridan muddat tanlang</p>
+                            <p style={s.genHint}>{t.dpGenHint}</p>
                         )}
                     </div>
                 )}
@@ -330,8 +335,8 @@ export default function DailyPlanPage() {
                             ...s.spinner,
                             transform: `rotate(${spinAngle}deg)`,
                         }} />
-                        <div style={s.loadingTitle}>AI reja tuzmoqda...</div>
-                        <div style={s.loadingSub}>Sizning darajangizga mos reja tayyorlanmoqda</div>
+                        <div style={s.loadingTitle}>{t.dpLoadTitle}</div>
+                        <div style={s.loadingSub}>{t.dpLoadSub}</div>
                         <div style={s.dotRow}>
                             {[0, 1, 2].map(i => (
                                 <div key={i} style={{ ...s.dot, animationDelay: `${i * 0.2}s` }} />
@@ -347,7 +352,7 @@ export default function DailyPlanPage() {
                         {/* Back + header row */}
                         <div style={s.planTopRow}>
                             <button className="dp-back-btn" onClick={handleReset} style={s.backBtn}>
-                                ← Orqaga
+                                {t.dpBackBtn}
                             </button>
                             <div style={s.planDurBadge}>
                                 {selectedDur?.icon} {selectedDur?.label}
@@ -358,7 +363,7 @@ export default function DailyPlanPage() {
                         <div style={s.planHeader}>
                             <div style={s.planHeaderTop}>
                                 <div style={{ flex: 1 }}>
-                                    <div style={s.planAiBadge}>✦ AI tomonidan yaratilgan</div>
+                                    <div style={s.planAiBadge}>{t.dpAiBadge}</div>
                                     <h2 style={s.planTitle}>{planMeta.title}</h2>
                                     <p style={s.planSummary}>{planMeta.summary}</p>
                                 </div>
@@ -372,9 +377,9 @@ export default function DailyPlanPage() {
                         {/* Stats row */}
                         <div style={s.statsRow}>
                             {[
-                                { icon: '📋', value: tasks.length, label: 'Jami vazifa' },
-                                { icon: '⏱', value: `${totalMinutes} min`, label: 'Taxminiy vaqt' },
-                                { icon: '🎯', value: uniqueSkills, label: 'Ko\'nikma turi' },
+                                { icon: '📋', value: tasks.length, label: t.dpTotalTasks },
+                                { icon: '⏱', value: `${totalMinutes} min`, label: t.dpEstTime },
+                                { icon: '🎯', value: uniqueSkills, label: t.dpSkillTypes },
                             ].map((stat, i) => (
                                 <div key={i} style={{ ...s.statCard, animation: `dpFadeIn 0.4s ${i * 0.08 + 0.2}s ease-out both` }}>
                                     <div style={s.statIcon}>{stat.icon}</div>
@@ -386,8 +391,8 @@ export default function DailyPlanPage() {
 
                         {/* Task list */}
                         <div style={s.taskListHeader}>
-                            Vazifalar ro'yxati
-                            <span style={s.taskListHint}>(bajarganingizda ustiga bosing ✓)</span>
+                            {t.dpTasksTitle}
+                            <span style={s.taskListHint}>{t.dpTasksHint}</span>
                         </div>
                         <div style={s.taskList}>
                             {tasks.map((task, i) => (
@@ -401,13 +406,13 @@ export default function DailyPlanPage() {
                                 onClick={handleGenerate}
                                 style={s.retryBtn}
                             >
-                                🔄 Yangi reja yaratish
+                                {t.dpNewPlan}
                             </button>
                             <button
                                 onClick={() => navigate('/tests')}
                                 style={s.testsBtn}
                             >
-                                📝 Testlarga o'tish →
+                                {t.dpGoTests}
                             </button>
                         </div>
                     </div>
