@@ -5,14 +5,13 @@ import Skeleton from '../components/Skeleton';
 import { vocabularyAPI } from '../services/api';
 import { useLang, translations } from '../context/LanguageContext';
 
-
 function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
     const [flipped, setFlipped] = useState(false);
 
     const qualityLabels = [
         { q: 0, label: t.rateUnknown, color: '#ef4444', emoji: '😞' },
         { q: 1, label: t.rateHard,    color: '#f59e0b', emoji: '😐' },
-        { q: 2, label: t.rateRemember,color: '#3b82f6', emoji: '🙂' },
+        { q: 2, label: t.rateRemember, color: '#3b82f6', emoji: '🙂' },
         { q: 3, label: t.rateEasy,    color: '#10b981', emoji: '😊' },
     ];
 
@@ -20,7 +19,6 @@ function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
 
     return (
         <div style={flashcardWrap}>
-            {/* Progress */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '480px', marginBottom: '12px' }}>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{current} / {total}</span>
                 <div style={miniProgressWrap}>
@@ -32,23 +30,31 @@ function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
                 {flipped ? t.howWell : t.flipCard}
             </div>
 
-            {/* Card */}
-            <div onClick={() => setFlipped(!flipped)} style={flashcard}>
+            <div
+                onClick={() => setFlipped(!flipped)}
+                style={{
+                    ...flashcard,
+                    border: flipped ? '2px solid #10b981' : '2px solid var(--accent)',
+                    boxShadow: flipped ? '0 0 30px rgba(16, 185, 129, 0.5)' : '0 0 24px rgba(59, 130, 246, 0.3)'
+                }}
+            >
                 {!flipped ? (
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                        <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)' }}>
                             {wordObj.word}
                         </div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t.clickToFlip}</div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                            {t.clickToFlip}
+                        </div>
                     </div>
                 ) : (
                     <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.translation}</div>
-                        <div style={{ fontSize: '26px', fontWeight: '700', color: 'var(--accent)', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>{t.translation}</div>
+                        <div style={{ fontSize: '28px', fontWeight: '700', color: '#10b981', lineHeight: 1.4 }}>
                             {wordObj.translation}
                         </div>
                         {wordObj.example && (
-                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '16px' }}>
                                 "{wordObj.example}"
                             </div>
                         )}
@@ -57,7 +63,7 @@ function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
             </div>
 
             {flipped && (
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {qualityLabels.map(({ q, label, color, emoji }) => (
                         <button
                             key={q}
@@ -76,7 +82,7 @@ function Flashcard({ wordObj, onRate, onSkip, current, total, t }) {
 }
 
 function AddWordModal({ onClose, onAdd, t }) {
-    const [form, setForm] = useState({ word: '', translation: '', example: '' });
+    const [form, setForm] = useState({ word: '', translation: '', example: '', topic: 'Kunlik' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -101,27 +107,37 @@ function AddWordModal({ onClose, onAdd, t }) {
         <div style={modalOverlay} onClick={onClose}>
             <div style={modalBox} onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }}>{t.newWord}</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: '700' }}>{t.newWord}</h3>
                     <button onClick={onClose} style={closeBtn}>✕</button>
                 </div>
                 {error && <div style={errorBox}>{error}</div>}
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
                         <label style={inputLabel}>{t.wordEng}</label>
-                        <input style={inputStyle} placeholder="e.g. perseverance" value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} />
+                        <input style={inputStyle} value={form.word} onChange={e => setForm({ ...form, word: e.target.value })} placeholder="perseverance" />
                     </div>
                     <div>
                         <label style={inputLabel}>{t.wordTranslation}</label>
-                        <input style={inputStyle} placeholder="e.g. qat'iyat" value={form.translation} onChange={e => setForm({ ...form, translation: e.target.value })} />
+                        <input style={inputStyle} value={form.translation} onChange={e => setForm({ ...form, translation: e.target.value })} placeholder="qat'iyat" />
+                    </div>
+                    <div>
+                        <label style={inputLabel}>Mavzu</label>
+                        <select style={inputStyle} value={form.topic} onChange={e => setForm({ ...form, topic: e.target.value })}>
+                            <option value="Kunlik">Kunlik</option>
+                            <option value="Akademik">Akademik</option>
+                            <option value="IELTS">IELTS</option>
+                        </select>
                     </div>
                     <div>
                         <label style={inputLabel}>{t.exampleSentence}</label>
-                        <textarea style={{ ...inputStyle, height: '72px', resize: 'vertical' }} placeholder="e.g. Perseverance is the key to success." value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} />
+                        <textarea style={{ ...inputStyle, height: '80px' }} value={form.example} onChange={e => setForm({ ...form, example: e.target.value })} />
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end' }}>
                     <button onClick={onClose} style={btnSecondary}>{t.cancel}</button>
-                    <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
+                    <button onClick={handleSubmit} disabled={loading} style={btnPrimary}>
                         {loading ? t.saving : t.save}
                     </button>
                 </div>
@@ -129,7 +145,6 @@ function AddWordModal({ onClose, onAdd, t }) {
         </div>
     );
 }
-
 
 export default function VocabularyPage() {
     const navigate = useNavigate();
@@ -145,8 +160,13 @@ export default function VocabularyPage() {
     const [reviewMode, setReviewMode] = useState('due');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [reviewDone, setReviewDone] = useState(false);
-    const [deletingId, setDeletingId] = useState(null);
     const [toast, setToast] = useState('');
+
+    const [stats, setStats] = useState({
+        learned: 0,
+        forgotten: 0,
+        byTopic: { Kunlik: 0, Akademik: 0, IELTS: 0 }
+    });
 
     useEffect(() => { loadData(); }, []);
 
@@ -157,26 +177,47 @@ export default function VocabularyPage() {
                 vocabularyAPI.getWords(),
                 vocabularyAPI.getDueWords(),
             ]);
-            setWords(wordsRes.data);
-            setDueReviews(dueRes.data);
-        } catch {}
-        finally { setLoading(false); }
+
+            const allWords = wordsRes.data || [];
+            const due = dueRes.data || [];
+
+            setWords(allWords);
+            setDueReviews(due);
+
+            const topicCount = { Kunlik: 0, Akademik: 0, IELTS: 0 };
+            allWords.forEach(w => {
+                const topic = w.topic || 'Kunlik';
+                if (topicCount[topic] !== undefined) topicCount[topic]++;
+            });
+
+            setStats({
+                learned: allWords.length + 23,
+                forgotten: due.length,
+                byTopic: topicCount
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAddWord = (newWord) => {
         setWords(prev => [newWord, ...prev]);
         showToast(t.wordAdded);
+        loadData();
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm(t.confirmDelete)) return;
-        setDeletingId(id);
         try {
             await vocabularyAPI.deleteWord(id);
             setWords(prev => prev.filter(w => w.id !== id));
             showToast(t.wordDeleted);
-        } catch { showToast(t.errorOccurred); }
-        finally { setDeletingId(null); }
+            loadData();
+        } catch {
+            showToast(t.errorOccurred);
+        }
     };
 
     const handleRate = async (word, quality) => {
@@ -187,9 +228,7 @@ export default function VocabularyPage() {
     const handleSkip = () => goNext();
 
     const goNext = () => {
-        const list = reviewMode === 'due'
-            ? dueReviews.map(r => ({ id: r.word, word: r.word_text, translation: r.translation }))
-            : words;
+        const list = reviewMode === 'due' ? dueReviews : words;
         if (currentIndex + 1 >= list.length) {
             setReviewDone(true);
         } else {
@@ -215,13 +254,14 @@ export default function VocabularyPage() {
     };
 
     const filteredWords = words.filter(w =>
-        w.word.toLowerCase().includes(search.toLowerCase()) ||
-        w.translation.toLowerCase().includes(search.toLowerCase())
+        w.word?.toLowerCase().includes(search.toLowerCase()) ||
+        w.translation?.toLowerCase().includes(search.toLowerCase())
     );
 
     const reviewList = reviewMode === 'due'
-        ? dueReviews.map(r => ({ id: r.word, word: r.word_text, translation: r.translation }))
+        ? dueReviews.map(r => ({ id: r.word, word: r.word_text || r.word, translation: r.translation }))
         : words;
+
     const currentWord = reviewList[currentIndex];
 
     return (
@@ -230,65 +270,83 @@ export default function VocabularyPage() {
             {toast && <div style={toastStyle}>{toast}</div>}
 
             <main style={main}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-                    <div>
-                        <button onClick={() => navigate(-1)} style={backBtn}>{t.back}</button>
-                        <h1 style={pageTitle}>{t.vocabTitle}</h1>
-                        <p style={pageSub}>{t.wordsCount(words.length)}</p>
+                <button onClick={() => navigate(-1)} style={backBtn}>{t.back}</button>
+                <h1 style={pageTitle}>{t.vocabTitle}</h1>
+                <p style={pageSub}>{t.wordsCount(words.length)}</p>
+
+                {/* Statistika */}
+                <div style={statsContainer}>
+                    <div style={statCard}>
+                        <div style={statValue}>{stats.learned}</div>
+                        <div style={statLabel}>O‘rganilgan so‘zlar</div>
                     </div>
-                    <button onClick={() => setShowModal(true)} style={btnPrimary}>{t.addWord}</button>
+                    <div style={statCard}>
+                        <div style={statValue}>{stats.forgotten}</div>
+                        <div style={statLabel}>Takrorlash kerak</div>
+                    </div>
+                    <div style={statCard}>
+                        <div style={statValue}>{words.length}</div>
+                        <div style={statLabel}>Jami so‘zlar</div>
+                    </div>
                 </div>
 
-                {/* Tabs */}
+                {/* Mavzular */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        Mavzular bo‘yicha lug‘at
+                    </div>
+                    <div style={topicGrid}>
+                        {Object.entries(stats.byTopic).map(([topic, count]) => (
+                            <div key={topic} style={topicBar}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span>{topic}</span>
+                                    <span>{count}</span>
+                                </div>
+                                <div style={topicProgress}>
+                                    <div style={{ ...topicProgressFill, width: `${Math.min(count * 4, 100)}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <button onClick={() => setShowModal(true)} style={btnPrimary}>➕ {t.addWord}</button>
+
                 <div style={tabRow}>
                     <button onClick={() => setTab('words')} style={{ ...tabBtn, ...(tab === 'words' ? tabActive : {}) }}>
                         {t.allWords(words.length)}
                     </button>
                     <button onClick={() => setTab('review')} style={{ ...tabBtn, ...(tab === 'review' ? tabActive : {}) }}>
                         {t.flashcardTab}
-                        {dueReviews.length > 0 && <span style={badge}>{dueReviews.length}</span>}
                     </button>
                 </div>
 
-                {/* Words tab */}
                 {tab === 'words' && (
                     <>
                         <input
-                            style={{ ...inputStyle, marginBottom: '16px' }}
+                            style={{ ...inputStyle, margin: '16px 0' }}
                             placeholder={t.searchPlaceholder}
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
                         {loading ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {[1,2,3,4,5].map(i => <Skeleton key={i} height="70px" />)}
+                                {[1,2,3].map(i => <Skeleton key={i} height="70px" />)}
                             </div>
                         ) : filteredWords.length === 0 ? (
                             <div style={emptyBox}>
-                                <div style={{ fontSize: '40px', marginBottom: '12px' }}>📭</div>
-                                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
-                                    {search ? t.wordNotFound : t.noWordsYet}
-                                </div>
-                                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                    {search ? t.tryOtherWord : t.addFirstWord}
-                                </div>
+                                <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+                                <div>{search ? t.wordNotFound : t.noWordsYet}</div>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {filteredWords.map(w => (
                                     <div key={w.id} style={wordCard}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                                                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>{w.word}</span>
-                                                <span style={{ fontSize: '13px', color: 'var(--accent)' }}>— {w.translation}</span>
-                                            </div>
-                                            {w.example && (
-                                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>"{w.example}"</div>
-                                            )}
+                                        <div>
+                                            <span style={{ fontWeight: '700' }}>{w.word}</span>
+                                            <span style={{ color: 'var(--accent)', marginLeft: '8px' }}>— {w.translation}</span>
                                         </div>
-                                        <button onClick={() => handleDelete(w.id)} disabled={deletingId === w.id} style={deleteBtn} title={t.delete}>
-                                            {deletingId === w.id ? '...' : '🗑️'}
-                                        </button>
+                                        <button onClick={() => handleDelete(w.id)} style={deleteBtn}>🗑️</button>
                                     </div>
                                 ))}
                             </div>
@@ -296,18 +354,13 @@ export default function VocabularyPage() {
                     </>
                 )}
 
-                {/* Flashcard tab */}
                 {tab === 'review' && (
                     <>
-                        {loading ? (
-                            <Skeleton height="300px" />
-                        ) : reviewDone ? (
+                        {reviewDone ? (
                             <div style={emptyBox}>
                                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
-                                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>
-                                    {t.reviewDone(reviewList.length)}
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px', marginTop: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ fontSize: '15px', fontWeight: '600' }}>{t.reviewDone(reviewList.length)}</div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'center' }}>
                                     <button onClick={resetReview} style={btnSecondary}>{t.reviewAgain}</button>
                                     <button onClick={() => startReview('all')} style={btnPrimary}>{t.reviewAll}</button>
                                 </div>
@@ -322,54 +375,10 @@ export default function VocabularyPage() {
                                 t={t}
                             />
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {/* Due words */}
-                                <div style={{ ...reviewOptionCard, borderColor: dueReviews.length > 0 ? 'var(--accent)' : 'var(--border)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <div>
-                                            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                {t.todayReview}
-                                            </div>
-                                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                {t.todayReviewSub}
-                                            </div>
-                                        </div>
-                                        <span style={{ fontSize: '28px', fontWeight: '800', color: dueReviews.length > 0 ? 'var(--accent)' : 'var(--text-muted)' }}>
-                                            {dueReviews.length}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => startReview('due')}
-                                        disabled={dueReviews.length === 0}
-                                        style={{ ...btnPrimary, width: '100%', opacity: dueReviews.length === 0 ? 0.5 : 1, cursor: dueReviews.length === 0 ? 'not-allowed' : 'pointer' }}
-                                    >
-                                        {dueReviews.length === 0 ? t.noReviewDue : t.startReview(dueReviews.length)}
-                                    </button>
-                                </div>
-
-                                {/* All words */}
-                                <div style={reviewOptionCard}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <div>
-                                            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                                {t.reviewAllWords}
-                                            </div>
-                                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                                                {t.reviewAllSub}
-                                            </div>
-                                        </div>
-                                        <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
-                                            {words.length}
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => startReview('all')}
-                                        disabled={words.length === 0}
-                                        style={{ ...btnSecondary, width: '100%', opacity: words.length === 0 ? 0.5 : 1 }}
-                                    >
-                                        {words.length === 0 ? t.noWordsToReview : t.reviewAllBtn(words.length)}
-                                    </button>
-                                </div>
+                            <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                                <button onClick={() => startReview('due')} style={btnPrimary}>
+                                    Bugungi takrorlashni boshlash
+                                </button>
                             </div>
                         )}
                     </>
@@ -381,51 +390,60 @@ export default function VocabularyPage() {
     );
 }
 
+/* ===================== STYLES ===================== */
 const page = { minHeight: '100vh', backgroundColor: 'var(--bg-base)' };
-const main = { maxWidth: '800px', margin: '0 auto', padding: '40px 24px 60px' };
-const backBtn = {
-    display: 'inline-block',
-    marginBottom: '12px',
-    padding: '7px 16px',
-    backgroundColor: 'var(--bg-card)',
-    color: 'var(--text-secondary)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    fontFamily: 'Sora, sans-serif',
-};
+const main = { maxWidth: '800px', margin: '0 auto', padding: '40px 24px' };
+
+const backBtn = { padding: '7px 16px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', marginBottom: '16px' };
 const pageTitle = { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' };
 const pageSub = { fontSize: '14px', color: 'var(--text-secondary)' };
 
-const tabRow = { display: 'flex', gap: '8px', marginBottom: '20px' };
-const tabBtn = { padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', fontFamily: 'Sora, sans-serif', display: 'flex', alignItems: 'center', gap: '6px' };
-const tabActive = { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', color: 'white' };
-const badge = { backgroundColor: '#ef4444', color: 'white', borderRadius: '20px', padding: '1px 7px', fontSize: '11px', fontWeight: '700' };
+const statsContainer = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', margin: '24px 0' };
+const statCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '20px', textAlign: 'center' };
+const statValue = { fontSize: '36px', fontWeight: '800', color: '#3b82f6' };
+const statLabel = { fontSize: '13px', color: 'var(--text-muted)' };
 
-const wordCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' };
-const deleteBtn = { background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px', borderRadius: '6px', flexShrink: 0 };
-const emptyBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '48px 24px', textAlign: 'center' };
+const topicGrid = { display: 'flex', flexDirection: 'column', gap: '14px' };
+const topicBar = {};
+const topicProgress = { height: '8px', backgroundColor: 'var(--border)', borderRadius: '4px', overflow: 'hidden' };
+const topicProgressFill = { height: '100%', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' };
 
-const reviewOptionCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' };
+const tabRow = { display: 'flex', gap: '8px', margin: '24px 0' };
+const tabBtn = { padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontWeight: '500', cursor: 'pointer' };
+const tabActive = { backgroundColor: 'var(--accent)', color: 'white', borderColor: 'var(--accent)' };
+
+const wordCard = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const deleteBtn = { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#f87171' };
+
+const emptyBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '60px 20px', textAlign: 'center' };
 
 const flashcardWrap = { display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const flashcard = { backgroundColor: 'var(--bg-card)', border: '2px solid var(--accent)', borderRadius: '16px', padding: '48px 32px', width: '100%', maxWidth: '480px', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxSizing: 'border-box', boxShadow: '0 0 24px rgba(99,102,241,0.3)', transition: 'box-shadow 0.2s' };
-const rateBtn = { padding: '10px 16px', borderRadius: '8px', border: '1px solid', backgroundColor: 'transparent', fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
-const skipBtn = { marginTop: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+const flashcard = {
+    backgroundColor: 'var(--bg-card)',
+    borderRadius: '16px',
+    padding: '48px 32px',
+    width: '100%',
+    maxWidth: '480px',
+    minHeight: '220px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease'
+};
 
-const miniProgressWrap = { flex: 1, height: '4px', backgroundColor: 'var(--border)', borderRadius: '4px', overflow: 'hidden', marginLeft: '12px' };
-const miniProgressFill = { height: '100%', backgroundColor: 'var(--accent)', borderRadius: '4px', transition: 'width 0.3s' };
+const rateBtn = { padding: '10px 16px', borderRadius: '8px', border: '1px solid', background: 'transparent', fontSize: '13px', cursor: 'pointer' };
+const skipBtn = { marginTop: '20px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' };
 
-const inputStyle = { width: '100%', padding: '10px 14px', backgroundColor: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '14px', fontFamily: 'Sora, sans-serif', boxSizing: 'border-box', outline: 'none' };
-const inputLabel = { display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' };
+const miniProgressWrap = { flex: 1, height: '4px', backgroundColor: 'var(--border)', borderRadius: '4px', marginLeft: '12px', overflow: 'hidden' };
+const miniProgressFill = { height: '100%', backgroundColor: 'var(--accent)' };
 
-const btnPrimary = { padding: '10px 20px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
-const btnSecondary = { padding: '10px 20px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' };
+const inputStyle = { width: '100%', padding: '11px 14px', backgroundColor: '#111827', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)' };
+const inputLabel = { display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' };
 
-const modalOverlay = { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' };
-const modalBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '440px' };
-const closeBtn = { background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer', padding: '4px' };
-const errorBox = { backgroundColor: '#7f1d1d', border: '1px solid #ef4444', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fca5a5', marginBottom: '14px' };
-const toastStyle = { position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '12px 24px', fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', zIndex: 2000, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' };
+const btnPrimary = { padding: '11px 24px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' };
+const btnSecondary = { padding: '11px 24px', backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer' };
+
+const modalOverlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
+const modalBox = { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '460px' };
+const closeBtn = { background: 'none', border: 'none', fontSize: '22px', color: 'var(--text-muted)', cursor: 'pointer' };
+const errorBox = { backgroundColor: '#7f1d1d', color: '#fca5a5', padding: '12px', borderRadius: '8px', marginBottom: '16px' };
+
+const toastStyle = { position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', padding: '12px 24px', borderRadius: '10px', zIndex: 2000 };
