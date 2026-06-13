@@ -52,9 +52,9 @@ function Navbar() {
                 </div>
 
                 <div style={styles.right}>
-                    <button style={styles.iconBtn} title={t.notifications}>
+                    <a href="/pricing" style={styles.iconBtn} title={t.notifications}>
                         🔔
-                    </button>
+                    </a>
 
                     <div style={styles.avatarWrap}>
                         <div
@@ -168,6 +168,10 @@ const styles = {
         cursor: 'pointer',
         fontSize: '16px',
         color: 'var(--text-secondary)',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     avatarWrap: {
         position: 'relative',

@@ -57,57 +57,9 @@ function TaskCard({ task, index }) {
 }
 
 async function callAI(duration, skill) {
-    const durationLabel = { '1day': '1 kunlik', '1week': '1 haftalik', '1month': '1 oylik' }[duration];
-    const skillText = skill === 'all'
-        ? "barcha ko'nikmalar: Reading, Listening, Writing, Speaking, Vocabulary"
-        : skill;
-
-    const taskCount = duration === '1day' ? '5-6 ta vazifa.' : duration === '1week' ? '18-22 ta vazifa, turli kunlarga taqsimlangan.' : '28-35 ta vazifa, haftalik guruhlar bilan.';
-
-    const prompt = `Siz professional IELTS o'qituvchisiz. ${durationLabel} o'quv rejasini tuzing.
-Ko'nikma yo'nalishi: ${skillText}
-
-FAQAT JSON formatida javob bering. Boshqa hech narsa yozmang:
-{
-  "title": "Reja sarlavhasi (qisqa, motivatsion, o'zbekcha)",
-  "summary": "Reja haqida 1-2 jumla (o'zbekcha)",
-  "targetBand": "Maqsad band score (masalan: Band 6.5+)",
-  "motivation": "Motivatsion qisqa xabar (o'zbekcha)",
-  "tasks": [
-    {
-      "type": "Reading|Listening|Writing|Speaking|Vocabulary|Grammar",
-      "title": "Aniq vazifa tavsifi (o'zbekcha)",
-      "duration": "Vaqt (masalan: 30 daqiqa)",
-      "tip": "Foydali maslahat (o'zbekcha, 1 jumla)"
-    }
-  ]
-}
-
-${taskCount}
-Faqat JSON, boshqa matn yoq.`;
-
-    const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('API key topilmadi');
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }],
-        }),
-    });
-
-    const data = await res.json();
-    const raw = data.content?.map(b => b.text || '').join('') || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
+    const { aiAPI } = await import('../services/api');
+    const res = await aiAPI.generatePlan(duration, skill);
+    return res.data;
 }
 
 export default function DailyPlanPage() {
@@ -224,6 +176,11 @@ export default function DailyPlanPage() {
                 {/* ── SELECT STEP ── */}
                 {step === 'select' && (
                     <div style={{ animation: 'dpFadeIn 0.5s ease-out' }}>
+
+                        {/* Back */}
+                        <button className="dp-back-btn" onClick={() => navigate(-1)} style={{ ...s.backBtn, marginBottom: '20px' }}>
+                            ← Orqaga
+                        </button>
 
                         {/* Hero */}
                         <div style={s.hero}>
