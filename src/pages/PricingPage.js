@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useLang, translations } from '../context/LanguageContext';
 
 function PricingPage() {
+    const navigate = useNavigate();
     const { lang } = useLang();
     const t = translations[lang];
 
@@ -9,6 +11,10 @@ function PricingPage() {
         <div style={styles.page}>
             <Navbar />
             <main style={styles.main}>
+
+                <button onClick={() => navigate(-1)} style={styles.backBtn}>
+                    ← Orqaga
+                </button>
 
                 <div style={styles.header}>
                     <h1 style={styles.title}>{t.pricingTitle}</h1>
@@ -69,6 +75,17 @@ function PricingPage() {
 }
 
 const styles = {
+    backBtn: {
+        background: '#0f172a',
+        border: '1px solid #1e2d45',
+        color: '#94a3b8',
+        borderRadius: '10px',
+        padding: '8px 16px',
+        cursor: 'pointer',
+        fontSize: '14px',
+        fontFamily: 'Sora, sans-serif',
+        marginBottom: '20px',
+    },
     page: {
         minHeight: '100vh',
         backgroundColor: 'var(--bg-base)',
