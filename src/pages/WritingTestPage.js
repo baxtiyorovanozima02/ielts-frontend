@@ -3,42 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { testsAPI } from '../services/api';
 
-async function evaluateWithClaude(essayText, taskPrompt) {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 1000,
-            messages: [{
-                role: "user",
-                content: `You are an expert IELTS examiner. Evaluate the following IELTS Writing Task essay and return ONLY a JSON object, no extra text, no markdown.
-
-Task prompt: ${taskPrompt}
-
-Essay:
-${essayText}
-
-Return this exact JSON structure:
-{
-  "band_score": <number 0-9, can be 0.5 increments>,
-  "feedback": "<detailed feedback in Uzbek language, 3-4 sentences>",
-  "criteria": {
-    "Task Achievement": <0-9>,
-    "Coherence & Cohesion": <0-9>,
-    "Lexical Resource": <0-9>,
-    "Grammatical Range": <0-9>
-  }
-}`
-            }]
-        })
-    });
-    const data = await response.json();
-    const text = data.content.map(i => i.text || '').join('');
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-}
-
 function WritingTestPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -89,43 +53,83 @@ function WritingTestPage() {
         localStorage.setItem('daily_goal', JSON.stringify({ date: today, done: done + 1 }));
     };
 
+    // Natija tayyor bo'lguncha backend'ni so'raydi
+    const pollForResult = async (submissionId, taskTitle) => {
+        const maxAttempts = 30; // 30 marta x 2 soniya = 60 soniyagacha kutadi
+        const delayMs = 2000;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            setSubmitStatus(`AI yozuvingizni o'qib, baholamoqda... (${attempt + 1})`);
+
+            try {
+                const res = await testsAPI.getWritingResults();
+                const results = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+
+                const found = results.find(r =>
+                    r.id === submissionId ||
+                    r.submission_id === submissionId ||
+                    r.attempt_id === submissionId
+                );
+
+                if (found && (found.band_score || found.band_score === 0) && found.band_score > 0) {
+                    return {
+                        band_score: found.band_score || found.score,
+                        feedback: found.feedback || found.ai_feedback || '',
+                        criteria: found.criteria || null,
+                        test_title: taskTitle,
+                    };
+                }
+            } catch (e) {
+                // davom etamiz
+            }
+
+            await new Promise(r => setTimeout(r, delayMs));
+        }
+
+        // Vaqt tugadi
+        throw new Error('timeout');
+    };
+
     const handleSubmit = async () => {
         if (!answer.trim()) return;
         clearInterval(timerRef.current);
         setSubmitting(true);
 
         try {
-            // 1. Avval backendga yuborishga harakat qilamiz
-            setSubmitStatus('Serverga yuborilmoqda...');
-            let result = null;
+            setSubmitStatus('Yuborilmoqda...');
+            const res = await testsAPI.submitWriting(id, { essay_text: answer });
+            const data = res.data;
 
-            try {
-                const res = await testsAPI.submitWriting(id, { essay_text: answer });
-                result = res.data;
-            } catch (backendErr) {
-                // Backend ishlamasa, Claude AI bilan baholaymiz
-                setSubmitStatus('AI baholamoqda...');
+            const taskTitle = test?.title || 'Writing Test';
+
+            // Agar backend darhol natija bersa
+            if (data && (data.band_score || data.band_score === 0) && data.band_score > 0) {
+                addXP(50);
+                navigate('/tests/result', {
+                    state: {
+                        result: {
+                            band_score: data.band_score,
+                            feedback: data.feedback || data.ai_feedback || '',
+                            criteria: data.criteria || null,
+                            test_title: taskTitle,
+                        },
+                        type: 'writing'
+                    }
+                });
+                return;
             }
 
-            // 2. Agar backend 0 qaytargan bo'lsa yoki ishlamagan bo'lsa — Claude bilan baholaymiz
-            const taskPrompt = test?.question || test?.prompt || 'IELTS Writing Task';
-            if (!result || !result.band_score || result.band_score === 0) {
-                setSubmitStatus('AI yozuvingizni o\'qib, baholamoqda...');
-                const aiResult = await evaluateWithClaude(answer, taskPrompt);
-                result = {
-                    band_score: aiResult.band_score,
-                    feedback: aiResult.feedback,
-                    criteria: aiResult.criteria,
-                    test_title: test?.title || 'Writing Test',
-                };
-            }
+            // Aks holda — backend asinxron ishlaydi, natija tayyor bo'lguncha kutamiz
+            const submissionId = data?.id;
+            const result = await pollForResult(submissionId, taskTitle);
 
             addXP(50);
             navigate('/tests/result', { state: { result, type: 'writing' } });
 
         } catch (err) {
             console.error(err);
-            alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
+            alert("Baholash hali tayyor emas. Bir necha daqiqadan keyin 'Statistika' bo'limidan natijangizni tekshiring.");
+            navigate('/statistics');
         } finally {
             setSubmitting(false);
             setSubmitStatus('');
@@ -143,8 +147,6 @@ function WritingTestPage() {
         <div style={styles.page}>
             <Navbar />
             <main style={styles.main}>
-
-                {/* Header */}
                 <div style={styles.header}>
                     <div>
                         <div style={styles.breadcrumb}>
@@ -156,17 +158,12 @@ function WritingTestPage() {
                         </div>
                         <h1 style={styles.title}>{test?.title}</h1>
                     </div>
-                    <div style={{
-                        ...styles.timer,
-                        ...(timeLeft < 300 ? styles.timerDanger : {})
-                    }}>
+                    <div style={{ ...styles.timer, ...(timeLeft < 300 ? styles.timerDanger : {}) }}>
                         ⏱ {formatTime(timeLeft)}
                     </div>
                 </div>
 
                 <div style={styles.layout}>
-
-                    {/* Task */}
                     <div style={styles.taskCard}>
                         <div style={styles.taskLabel}>📋 Topshiriq</div>
                         <div style={styles.taskText}>
@@ -177,7 +174,6 @@ function WritingTestPage() {
                         )}
                     </div>
 
-                    {/* Answer */}
                     <div style={styles.answerCard}>
                         <div style={styles.answerHeader}>
                             <div style={styles.taskLabel}>✍️ Javobingiz</div>
@@ -197,7 +193,6 @@ function WritingTestPage() {
                             disabled={submitting}
                         />
 
-                        {/* Submit status */}
                         {submitting && submitStatus && (
                             <div style={styles.statusBox}>
                                 <div style={styles.spinner} />
@@ -217,7 +212,6 @@ function WritingTestPage() {
                             {submitting ? '🤖 AI baholamoqda...' : '📤 Yuborish va baholash'}
                         </button>
                     </div>
-
                 </div>
             </main>
         </div>
@@ -252,7 +246,6 @@ const styles = {
     submitBtn: { padding: '13px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', fontFamily: 'Sora, sans-serif', transition: 'opacity 0.2s' },
 };
 
-// Spinner animation
 const styleEl = document.createElement('style');
 styleEl.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(styleEl);
