@@ -55,7 +55,7 @@ function WritingTestPage() {
         if (!answer.trim()) return;
         setSubmitting(true);
         try {
-            const res = await testsAPI.submitWriting(id, { answer });
+            const res = await testsAPI.submitWriting(id, { essay_text: answer });
             addXP(50);
             navigate('/tests/result', { state: { result: res.data, type: 'writing' } });
         } catch {
