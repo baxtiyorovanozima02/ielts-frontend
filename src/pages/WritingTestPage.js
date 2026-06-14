@@ -3,6 +3,22 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { testsAPI } from '../services/api';
 
+async function evaluateWithGroq(essayText, taskPrompt) {
+    const response = await fetch("/api/evaluate-writing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            essay_text: essayText,
+            task_prompt: taskPrompt,
+        })
+    });
+    if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || 'AI evaluation failed');
+    }
+    return await response.json();
+}
+
 function WritingTestPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -53,83 +69,36 @@ function WritingTestPage() {
         localStorage.setItem('daily_goal', JSON.stringify({ date: today, done: done + 1 }));
     };
 
-    // Natija tayyor bo'lguncha backend'ni so'raydi
-    const pollForResult = async (submissionId, taskTitle) => {
-        const maxAttempts = 30; // 30 marta x 2 soniya = 60 soniyagacha kutadi
-        const delayMs = 2000;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            setSubmitStatus(`AI yozuvingizni o'qib, baholamoqda... (${attempt + 1})`);
-
-            try {
-                const res = await testsAPI.getWritingResults();
-                const results = Array.isArray(res.data) ? res.data : (res.data?.results || []);
-
-                const found = results.find(r =>
-                    r.id === submissionId ||
-                    r.submission_id === submissionId ||
-                    r.attempt_id === submissionId
-                );
-
-                if (found && (found.band_score || found.band_score === 0) && found.band_score > 0) {
-                    return {
-                        band_score: found.band_score || found.score,
-                        feedback: found.feedback || found.ai_feedback || '',
-                        criteria: found.criteria || null,
-                        test_title: taskTitle,
-                    };
-                }
-            } catch (e) {
-                // davom etamiz
-            }
-
-            await new Promise(r => setTimeout(r, delayMs));
-        }
-
-        // Vaqt tugadi
-        throw new Error('timeout');
-    };
-
     const handleSubmit = async () => {
         if (!answer.trim()) return;
         clearInterval(timerRef.current);
         setSubmitting(true);
 
         try {
-            setSubmitStatus('Yuborilmoqda...');
-            const res = await testsAPI.submitWriting(id, { essay_text: answer });
-            const data = res.data;
-
             const taskTitle = test?.title || 'Writing Test';
+            const taskPrompt = test?.question || test?.prompt || 'IELTS Writing Task';
 
-            // Agar backend darhol natija bersa
-            if (data && (data.band_score || data.band_score === 0) && data.band_score > 0) {
-                addXP(50);
-                navigate('/tests/result', {
-                    state: {
-                        result: {
-                            band_score: data.band_score,
-                            feedback: data.feedback || data.ai_feedback || '',
-                            criteria: data.criteria || null,
-                            test_title: taskTitle,
-                        },
-                        type: 'writing'
-                    }
-                });
-                return;
-            }
+            // 1. Javobni backendga saqlash uchun yuboramiz (natijasini kutmaymiz)
+            setSubmitStatus('Javobingiz saqlanmoqda...');
+            testsAPI.submitWriting(id, { essay_text: answer }).catch(() => {});
 
-            // Aks holda — backend asinxron ishlaydi, natija tayyor bo'lguncha kutamiz
-            const submissionId = data?.id;
-            const result = await pollForResult(submissionId, taskTitle);
+            // 2. Darhol AI orqali baholaymiz
+            setSubmitStatus("AI yozuvingizni o'qib, baholamoqda...");
+            const aiResult = await evaluateWithGroq(answer, taskPrompt);
+
+            const result = {
+                band_score: aiResult.band_score,
+                feedback: aiResult.feedback,
+                criteria: aiResult.criteria,
+                test_title: taskTitle,
+            };
 
             addXP(50);
             navigate('/tests/result', { state: { result, type: 'writing' } });
 
         } catch (err) {
             console.error(err);
-            alert("Baholash hali tayyor emas. Bir necha daqiqadan keyin 'Statistika' bo'limidan natijangizni tekshiring.");
-            navigate('/statistics');
+            alert("Xatolik yuz berdi: " + err.message + "\nQayta urinib ko'ring.");
         } finally {
             setSubmitting(false);
             setSubmitStatus('');
