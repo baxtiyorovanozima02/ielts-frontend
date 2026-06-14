@@ -88,7 +88,7 @@ function SpeakingTestPage() {
         setSubmitting(true);
         try {
             const formData = new FormData();
-            formData.append('audio', audioFile, 'speaking.wav');
+            formData.append('audio_file', audioFile, 'speaking.wav');
             const res = await testsAPI.submitSpeaking(id, formData);
             addXP(60);
             navigate('/tests/result', { state: { result: res.data, type: 'speaking' } });
