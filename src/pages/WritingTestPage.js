@@ -1,7 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { testsAPI } from '../services/api';
+
+async function evaluateWithClaude(essayText, taskPrompt) {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 1000,
+            messages: [{
+                role: "user",
+                content: `You are an expert IELTS examiner. Evaluate the following IELTS Writing Task essay and return ONLY a JSON object, no extra text, no markdown.
+
+Task prompt: ${taskPrompt}
+
+Essay:
+${essayText}
+
+Return this exact JSON structure:
+{
+  "band_score": <number 0-9, can be 0.5 increments>,
+  "feedback": "<detailed feedback in Uzbek language, 3-4 sentences>",
+  "criteria": {
+    "Task Achievement": <0-9>,
+    "Coherence & Cohesion": <0-9>,
+    "Lexical Resource": <0-9>,
+    "Grammatical Range": <0-9>
+  }
+}`
+            }]
+        })
+    });
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+}
 
 function WritingTestPage() {
     const { id } = useParams();
@@ -10,7 +46,9 @@ function WritingTestPage() {
     const [answer, setAnswer] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState('');
     const [timeLeft, setTimeLeft] = useState(60 * 60);
+    const timerRef = useRef(null);
 
     useEffect(() => {
         testsAPI.getTest(id)
@@ -20,17 +58,17 @@ function WritingTestPage() {
     }, [id]);
 
     useEffect(() => {
-        const timer = setInterval(() => {
+        timerRef.current = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
-                    clearInterval(timer);
+                    clearInterval(timerRef.current);
                     handleSubmit();
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
-        return () => clearInterval(timer);
+        return () => clearInterval(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -53,15 +91,44 @@ function WritingTestPage() {
 
     const handleSubmit = async () => {
         if (!answer.trim()) return;
+        clearInterval(timerRef.current);
         setSubmitting(true);
+
         try {
-            const res = await testsAPI.submitWriting(id, { essay_text: answer });
+            // 1. Avval backendga yuborishga harakat qilamiz
+            setSubmitStatus('Serverga yuborilmoqda...');
+            let result = null;
+
+            try {
+                const res = await testsAPI.submitWriting(id, { essay_text: answer });
+                result = res.data;
+            } catch (backendErr) {
+                // Backend ishlamasa, Claude AI bilan baholaymiz
+                setSubmitStatus('AI baholamoqda...');
+            }
+
+            // 2. Agar backend 0 qaytargan bo'lsa yoki ishlamagan bo'lsa — Claude bilan baholaymiz
+            const taskPrompt = test?.question || test?.prompt || 'IELTS Writing Task';
+            if (!result || !result.band_score || result.band_score === 0) {
+                setSubmitStatus('AI yozuvingizni o\'qib, baholamoqda...');
+                const aiResult = await evaluateWithClaude(answer, taskPrompt);
+                result = {
+                    band_score: aiResult.band_score,
+                    feedback: aiResult.feedback,
+                    criteria: aiResult.criteria,
+                    test_title: test?.title || 'Writing Test',
+                };
+            }
+
             addXP(50);
-            navigate('/tests/result', { state: { result: res.data, type: 'writing' } });
-        } catch {
+            navigate('/tests/result', { state: { result, type: 'writing' } });
+
+        } catch (err) {
+            console.error(err);
             alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
         } finally {
             setSubmitting(false);
+            setSubmitStatus('');
         }
     };
 
@@ -127,13 +194,24 @@ function WritingTestPage() {
                             value={answer}
                             onChange={e => setAnswer(e.target.value)}
                             rows={16}
+                            disabled={submitting}
                         />
+
+                        {/* Submit status */}
+                        {submitting && submitStatus && (
+                            <div style={styles.statusBox}>
+                                <div style={styles.spinner} />
+                                <span>{submitStatus}</span>
+                            </div>
+                        )}
+
                         <button
                             onClick={handleSubmit}
                             disabled={submitting || wordCount < 50}
                             style={{
                                 ...styles.submitBtn,
-                                opacity: (submitting || wordCount < 50) ? 0.6 : 1
+                                opacity: (submitting || wordCount < 50) ? 0.6 : 1,
+                                cursor: (submitting || wordCount < 50) ? 'not-allowed' : 'pointer',
                             }}
                         >
                             {submitting ? '🤖 AI baholamoqda...' : '📤 Yuborish va baholash'}
@@ -147,158 +225,36 @@ function WritingTestPage() {
 }
 
 const styles = {
-    page: {
-        minHeight: '100vh',
-        backgroundColor: 'var(--bg-base)',
-    },
-    loading: {
-        textAlign: 'center',
-        padding: '80px',
-        color: 'var(--text-muted)',
-        fontSize: '14px',
-    },
-    main: {
-        maxWidth: '1100px',
-        margin: '0 auto',
-        padding: '32px 24px',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '28px',
-    },
-    backBtn: {
-        padding: '5px 12px',
-        backgroundColor: 'transparent',
-        color: 'var(--accent)',
-        border: '1px solid var(--border)',
-        borderRadius: '6px',
-        fontSize: '12px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
-    },
-    breadcrumb: {
-        fontSize: '13px',
-        color: 'var(--text-muted)',
-        marginBottom: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-    },
-    breadcrumbLink: {
-        color: 'var(--accent)',
-        textDecoration: 'none',
-    },
-    breadcrumbSep: {
-        color: 'var(--text-muted)',
-    },
-    title: {
-        fontSize: '24px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-    },
-    timer: {
-        padding: '10px 20px',
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '10px',
-        fontSize: '18px',
-        fontWeight: '700',
-        color: 'var(--text-primary)',
-        fontFamily: 'monospace',
-    },
-    timerDanger: {
-        borderColor: '#ef4444',
-        color: '#f87171',
-        backgroundColor: 'rgba(239,68,68,0.08)',
-    },
-    layout: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '24px',
-    },
-    taskCard: {
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: '24px',
-        height: 'fit-content',
-    },
-    taskLabel: {
-        fontSize: '12px',
-        fontWeight: '600',
-        color: 'var(--text-muted)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        marginBottom: '14px',
-    },
-    taskText: {
-        fontSize: '15px',
-        color: 'var(--text-secondary)',
-        lineHeight: '1.8',
-        whiteSpace: 'pre-wrap',
-    },
-    taskImage: {
-        width: '100%',
-        borderRadius: '8px',
-        marginTop: '16px',
-        border: '1px solid var(--border)',
-    },
-    answerCard: {
-        backgroundColor: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '14px',
-    },
-    answerHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    wordCounter: {
-        fontSize: '12px',
-        fontWeight: '600',
-        padding: '3px 10px',
-        borderRadius: '20px',
-    },
-    wordCounterWarn: {
-        backgroundColor: 'rgba(245,158,11,0.1)',
-        color: '#fbbf24',
-    },
-    wordCounterOk: {
-        backgroundColor: 'rgba(16,185,129,0.1)',
-        color: '#34d399',
-    },
-    textarea: {
-        width: '100%',
-        backgroundColor: '#0a0f1e',
-        border: '1px solid var(--border)',
-        borderRadius: '10px',
-        padding: '16px',
-        color: 'var(--text-primary)',
-        fontSize: '15px',
-        lineHeight: '1.7',
-        fontFamily: 'Sora, sans-serif',
-        resize: 'vertical',
-        outline: 'none',
-    },
-    submitBtn: {
-        padding: '13px',
-        backgroundColor: 'var(--accent)',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '15px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        fontFamily: 'Sora, sans-serif',
-        transition: 'opacity 0.2s',
-    },
+    page: { minHeight: '100vh', backgroundColor: 'var(--bg-base)' },
+    loading: { textAlign: 'center', padding: '80px', color: 'var(--text-muted)', fontSize: '14px' },
+    main: { maxWidth: '1100px', margin: '0 auto', padding: '32px 24px' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' },
+    backBtn: { padding: '5px 12px', backgroundColor: 'transparent', color: 'var(--accent)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: 'Sora, sans-serif' },
+    breadcrumb: { fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' },
+    breadcrumbLink: { color: 'var(--accent)', textDecoration: 'none' },
+    breadcrumbSep: { color: 'var(--text-muted)' },
+    title: { fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' },
+    timer: { padding: '10px 20px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'monospace' },
+    timerDanger: { borderColor: '#ef4444', color: '#f87171', backgroundColor: 'rgba(239,68,68,0.08)' },
+    layout: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' },
+    taskCard: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '24px', height: 'fit-content' },
+    taskLabel: { fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' },
+    taskText: { fontSize: '15px', color: 'var(--text-secondary)', lineHeight: '1.8', whiteSpace: 'pre-wrap' },
+    taskImage: { width: '100%', borderRadius: '8px', marginTop: '16px', border: '1px solid var(--border)' },
+    answerCard: { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' },
+    answerHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    wordCounter: { fontSize: '12px', fontWeight: '600', padding: '3px 10px', borderRadius: '20px' },
+    wordCounterWarn: { backgroundColor: 'rgba(245,158,11,0.1)', color: '#fbbf24' },
+    wordCounterOk: { backgroundColor: 'rgba(16,185,129,0.1)', color: '#34d399' },
+    textarea: { width: '100%', backgroundColor: '#0a0f1e', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px', color: 'var(--text-primary)', fontSize: '15px', lineHeight: '1.7', fontFamily: 'Sora, sans-serif', resize: 'vertical', outline: 'none' },
+    statusBox: { display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', backgroundColor: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '8px', fontSize: '14px', color: 'var(--accent)' },
+    spinner: { width: '16px', height: '16px', border: '2px solid rgba(99,102,241,0.3)', borderTop: '2px solid var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 },
+    submitBtn: { padding: '13px', backgroundColor: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', fontFamily: 'Sora, sans-serif', transition: 'opacity 0.2s' },
 };
+
+// Spinner animation
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(styleEl);
 
 export default WritingTestPage;
