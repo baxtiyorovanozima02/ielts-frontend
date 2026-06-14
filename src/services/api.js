@@ -69,7 +69,9 @@ export const testsAPI = {
     getTests: (section) => api.get(`/tests/tests/?section=${section}`),
     getTest: (id) => api.get(`/tests/tests/${id}/`),
     submitWriting: (testId, data) => api.post(`/tests/tests/${testId}/evaluate/`, data),
-    submitSpeaking: (testId, data) => api.post(`/tests/tests/${testId}/speaking/`, data),
+    submitSpeaking: (testId, data) => api.post(`/tests/tests/${testId}/speaking/`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     getWritingResults: () => api.get('/tests/results/writing/'),
     getSpeakingResults: () => api.get('/tests/results/speaking/'),
 };
