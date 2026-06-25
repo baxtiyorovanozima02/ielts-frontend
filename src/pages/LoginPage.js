@@ -58,7 +58,7 @@ function LoginPage() {
         <div style={styles.page}>
             <div style={styles.card}>
 
-                <div style={styles.logo}>SelfStudy<span style={styles.logoAccent}>.uz</span></div>
+                <div style={styles.logo}>IELTSERA<span style={styles.logoAccent}>.uz</span></div>
                 <p style={styles.subtitle}>Akkauntingizga kiring</p>
 
                 {errors.general && <div style={styles.errorBox}>{errors.general}</div>}

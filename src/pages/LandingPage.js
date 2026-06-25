@@ -96,7 +96,7 @@ function LandingPage() {
             {/* Navbar */}
             <nav style={styles.navbar}>
                 <div style={styles.logo}>
-                    SelfStudy<span style={styles.accent}>.uz</span>
+                    IELTSERA<span style={styles.accent}>.uz</span>
                 </div>
                 <div style={styles.navLinks}>
                     <a href="/pricing" style={styles.navLink}>{t.landingNavPricing}</a>
@@ -299,8 +299,8 @@ function LandingPage() {
 
             {/* Footer */}
             <footer style={styles.footer}>
-                <div style={styles.logo}>SelfStudy<span style={styles.accent}>.uz</span></div>
-                <p style={styles.footerText}>© 2026 SelfStudy.uz — Made with ❤️ in Uzbekistan</p>
+                <div style={styles.logo}>IELTSERA<span style={styles.accent}>.uz</span></div>
+                <p style={styles.footerText}>© 2026 IELTSERA — Made with ❤️ in Uzbekistan</p>
             </footer>
         </div>
     );

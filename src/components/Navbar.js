@@ -36,12 +36,12 @@ function Navbar() {
                 <a href="/dashboard" style={styles.logoWrap}>
                     <img
                         src="/logo.jpg"
-                        alt="SelfStudy.uz"
+                        alt="IELTSERA"
                         style={styles.logoImg}
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                     <span style={styles.logoText}>
-                        SelfStudy<span style={styles.logoAccent}>.uz</span>
+                        IELTSERA<span style={styles.logoAccent}>.uz</span>
                     </span>
                 </a>
 
