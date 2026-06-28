@@ -23,6 +23,7 @@ function WritingTestPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [test, setTest] = useState(null);
+    const [question, setQuestion] = useState(''); // ← YANGI: essay savoli
     const [answer, setAnswer] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -32,7 +33,20 @@ function WritingTestPage() {
 
     useEffect(() => {
         testsAPI.getTest(id)
-            .then(res => setTest(res.data))
+            .then(res => {
+                const testData = res.data;
+                setTest(testData);
+
+                // ← TO'G'RILASH: questions massividan essay savolini topamiz
+                const questions = testData.questions || [];
+                const essayQuestion = questions.find(q => q.question_type === 'essay');
+                if (essayQuestion) {
+                    setQuestion(essayQuestion.text);
+                } else if (questions.length > 0) {
+                    // essay topilmasa birinchi savolni olamiz
+                    setQuestion(questions[0].text);
+                }
+            })
             .catch(() => {})
             .finally(() => setLoading(false));
     }, [id]);
@@ -76,13 +90,13 @@ function WritingTestPage() {
 
         try {
             const taskTitle = test?.title || 'Writing Test';
-            const taskPrompt = test?.question || test?.prompt || 'IELTS Writing Task';
+            const taskPrompt = question || 'IELTS Writing Task'; // ← TO'G'RILASH
 
-            // 1. Javobni backendga saqlash uchun yuboramiz (natijasini kutmaymiz)
+            // 1. Javobni backendga saqlash uchun yuboramiz
             setSubmitStatus('Javobingiz saqlanmoqda...');
             testsAPI.submitWriting(id, { essay_text: answer }).catch(() => {});
 
-            // 2. Darhol AI orqali baholaymiz
+            // 2. AI orqali baholaymiz
             setSubmitStatus("AI yozuvingizni o'qib, baholamoqda...");
             const aiResult = await evaluateWithGroq(answer, taskPrompt);
 
@@ -136,7 +150,8 @@ function WritingTestPage() {
                     <div style={styles.taskCard}>
                         <div style={styles.taskLabel}>📋 Topshiriq</div>
                         <div style={styles.taskText}>
-                            {test?.question || test?.prompt || 'Topshiriq yuklanmoqda...'}
+                            {/* ← TO'G'RILASH: question state dan ko'rsatamiz */}
+                            {question || 'Topshiriq mavjud emas. Admin paneldan essay savol qo\'shing.'}
                         </div>
                         {test?.image && (
                             <img src={test.image} alt="task" style={styles.taskImage} />
