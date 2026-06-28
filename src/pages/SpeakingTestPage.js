@@ -7,6 +7,7 @@ function SpeakingTestPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [test, setTest] = useState(null);
+    const [question, setQuestion] = useState(''); // ← YANGI: savol state
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [audioFile, setAudioFile] = useState(null);
@@ -15,10 +16,18 @@ function SpeakingTestPage() {
     const [audioURL, setAudioURL] = useState('');
     const [timeLeft, setTimeLeft] = useState(15 * 60);
 
-
     useEffect(() => {
         testsAPI.getTest(id)
-            .then(res => setTest(res.data))
+            .then(res => {
+                const testData = res.data;
+                setTest(testData);
+
+                // ← TO'G'RILASH: questions ichidan birinchi savolni olamiz
+                const questions = testData.questions || [];
+                if (questions.length > 0) {
+                    setQuestion(questions[0].text);
+                }
+            })
             .catch(() => {})
             .finally(() => setLoading(false));
     }, [id]);
@@ -137,7 +146,8 @@ function SpeakingTestPage() {
                     <div style={styles.taskCard}>
                         <div style={styles.taskLabel}>📋 Savollar</div>
                         <div style={styles.taskText}>
-                            {test?.question || test?.prompt || 'Savol yuklanmoqda...'}
+                            {/* ← TO'G'RILASH: question state dan ko'rsatamiz */}
+                            {question || 'Savol mavjud emas. Admin paneldan savol qo\'shing.'}
                         </div>
                         <div style={styles.tips}>
                             <div style={styles.tipsTitle}>💡 Maslahatlar</div>
