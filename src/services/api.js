@@ -106,3 +106,4 @@ export const vocabularyAPI = {
     reviewWord: (data) => api.post('/vocabulary/words/review/', data),
 };
 
+export default api;
