@@ -90,6 +90,14 @@ export const statisticsAPI = {
     getWeakAreas: () => api.get('/tests/statistics/weak-areas/'),
 };
 
+export const liveSpeakingAPI = {
+    startSession: (data) => api.post('/live-speaking/sessions/start/', data),
+    getSessions: () => api.get('/live-speaking/sessions/'),
+    getSession: (sessionId) => api.get(`/live-speaking/sessions/${sessionId}/`),
+    endSession: (sessionId) => api.post(`/live-speaking/sessions/${sessionId}/end/`),
+    refreshAvatarToken: (sessionId) => api.get(`/live-speaking/sessions/${sessionId}/avatar-token/`),
+};
+
 export const vocabularyAPI = {
     getWords: () => api.get('/vocabulary/words/'),
     addWord: (data) => api.post('/vocabulary/words/', data),
@@ -98,4 +106,3 @@ export const vocabularyAPI = {
     reviewWord: (data) => api.post('/vocabulary/words/review/', data),
 };
 
-export default api;
