@@ -2,6 +2,13 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost/api/v1';
 
+// WebSocket ulanishlar uchun bazaviy manzil (http(s)://host/api/v1 -> ws(s)://host)
+export const getWsBaseUrl = () => {
+    const explicit = process.env.REACT_APP_WS_URL;
+    if (explicit) return explicit;
+    return API_URL.replace(/\/api\/v1\/?$/, '').replace(/^http/, 'ws');
+};
+
 const api = axios.create({
     baseURL: API_URL,
     headers: {
