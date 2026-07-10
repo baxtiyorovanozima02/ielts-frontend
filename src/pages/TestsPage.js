@@ -130,6 +130,30 @@ function TestsPage() {
                     })}
                 </div>
 
+                {activeSection === 'speaking' && (
+                    <div style={styles.avatarBanner}>
+                        <div style={styles.avatarBannerLeft}>
+                            <div style={styles.avatarBannerIcon}>🧑‍🏫</div>
+                            <div>
+                                <div style={styles.avatarBannerTitle}>Live Speaking — AI Avatar bilan suhbat</div>
+                                <div style={styles.avatarBannerText}>
+                                    Yozib olish o'rniga jonli AI examiner bilan real vaqtda gaplashing.
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => navigate('/live-speaking')}
+                            style={{
+                                ...styles.avatarBannerBtn,
+                                backgroundColor: SECTION_COLORS.speaking,
+                                boxShadow: `0 4px 14px ${SECTION_COLORS.speaking}40`,
+                            }}
+                        >
+                            🎥 Boshlash
+                        </button>
+                    </div>
+                )}
+
                 {testsLoading ? (
                     <div style={styles.loadingGrid}>
                         {Array(3).fill(0).map((_, i) => (
@@ -231,6 +255,24 @@ const styles = {
     pageTitle: { fontSize: '28px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' },
     pageSub: { color: 'var(--text-secondary)', fontSize: '14px' },
     tabs: { display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '32px' },
+    avatarBanner: {
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+        flexWrap: 'wrap', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)',
+        borderRadius: '16px', padding: '20px 24px', marginBottom: '24px',
+    },
+    avatarBannerLeft: { display: 'flex', alignItems: 'center', gap: '16px' },
+    avatarBannerIcon: {
+        width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '24px', backgroundColor: `${SECTION_COLORS.speaking}15`,
+        flexShrink: 0,
+    },
+    avatarBannerTitle: { fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' },
+    avatarBannerText: { fontSize: '13px', color: 'var(--text-secondary)' },
+    avatarBannerBtn: {
+        padding: '11px 22px', color: '#fff', border: 'none', borderRadius: '10px',
+        fontSize: '14px', fontWeight: '700', cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+        whiteSpace: 'nowrap',
+    },
     tab: {
         display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px',
         borderRadius: '10px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)',
